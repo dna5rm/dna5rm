@@ -1,0 +1,8 @@
+# Bootstrap input
+.bootstrap
+
+# Testing files
+_*.sh
+
+# RRD files
+*.rrd
