@@ -6,7 +6,7 @@ if type "termux-info" >/dev/null 2>&1; then
 
     alias android_settings="am start -a android.intent.action.MAIN -n com.android.settings/.Settings"
     alias mplayer=termux-open
-    alias startx="export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && ${HOME}/bin/rc_files/openbox/startx.sh"
+    alias startx="export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && ${RCPATH}/openbox/startx.sh"
     alias tts="termux-tts-speak -r 1.5"
 
     function kp_user()
