@@ -1,4 +1,4 @@
-alias _listen="lsof -nP -iTCP -sTCP:LISTEN | sed '1 s,.*,$(tput smso)&$(tput sgr0),'"
+alias show='debug_show.sh'
 alias ls='ls --color=auto' 2>/dev/null
 alias nmap='nmap -Pn -oG -'
 alias pico=nano
