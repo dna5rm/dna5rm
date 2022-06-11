@@ -13,7 +13,7 @@ pkgs=(
     fdupes ffmpeg file
     git gnupg golang
     htop
-    imagemagick
+    imagemagick ipcalc
     jq
     libmaxminddb-tools libzmq
     man moreutils
