@@ -1,4 +1,4 @@
-alias show='debug_show.sh'
+alias show='sudo debug.sh'
 alias ls='ls --color=auto' 2>/dev/null
 alias nmap='nmap -Pn -oG -'
 alias pico=nano
