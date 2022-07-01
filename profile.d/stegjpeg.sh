@@ -1,0 +1,1 @@
+../../../bin/bashFunc/stegjpeg.sh
