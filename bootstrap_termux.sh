@@ -21,7 +21,7 @@ pkgs=(
     openssh ossp-uuid
     pdfgrep proot-distro pup python
     rsync rust
-    screen
+    screen steghide
     termux-api
     toilet
     vim
