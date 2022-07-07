@@ -17,11 +17,11 @@ pkgs=(
     jq
     libmaxminddb-tools libzmq
     man moreutils
-    ncurses-utils neofetch nmap nodejs
+    ncurses-utils neofetch nmap nodejs-lts
     openssh ossp-uuid
     pdfgrep proot-distro pup python
     rsync rust
-    screen
+    screen steghide
     termux-api
     toilet
     vim

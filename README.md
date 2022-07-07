@@ -14,3 +14,12 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+
+<details>
+  <summary>📈 GitHub Statistics</summary>
+
+  ![GitHub Statistics](https://metrics.lecoq.io/dna5rm)
+
+  ![Profile Views](https://komarev.com/ghpvc/?username=dna5rm)
+
+</details>
