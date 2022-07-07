@@ -100,6 +100,8 @@
     autocmd StdinReadPre * let s:std_in=1
     autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists('s:std_in') |
         \ execute 'NERDTree' argv()[0] | wincmd p | enew | execute 'cd '.argv()[0] | endif
+
+    au BufRead,BufNewFile *.yaml set filetype=yaml.ansible
 " }}}
 " COLOR THEME ------------------------------------------------------------ {{{
     " Important!!
@@ -188,12 +190,9 @@
     let g:ale_echo_msg_warning_str = '⚐'
 " }}}
 " PLUGIN: COC ------------------------------------------------------------ {{{
-    " Recomended extension:
-    " coc-cmake coc-highlight coc-html coc-json coc-markdownlint coc-pairs coc-perl
-    " coc-phpls coc-pyright coc-sh coc-spell-checker @yaegassy/coc-ansible
-
     let g:coc_global_extensions = [
-     \ 'coc-pyright', 'coc-phpls', 'coc-spell-checker', 'coc-perl', 'coc-pairs'
+     \ 'coc-cmake', 'coc-highlight', 'coc-html', 'coc-json', 'coc-markdownlint', 'coc-pairs',
+     \ 'coc-perl', 'coc-phpls', 'coc-pyright', 'coc-sh', 'coc-spell-checker', '@yaegassy/coc-ansible'
      \ ]
 
      " \ 'coc-json', 'coc-pairs', 'coc-eslint',  'coc-tsserver',
@@ -201,6 +200,10 @@
      " \ 'coc-lists', 'coc-snippets', 'coc-git', 'coc-elixir', 'coc-marketplace',
      " \ 'coc-webpack', 'coc-lua', 'coc-vimlsp', 'coc-docker', 'coc-tslint',
      " \ 'coc-cmake', 'coc-highlight', 'coc-markdownlint', 'coc-perl', 'coc-pairs'
+
+    let g:coc_filetype_map = {
+     \ 'yaml.ansible': 'ansible',
+     \ }
 
     let g:coc_user_config = {
      \ "diagnostic.errorSign": '⚠',
