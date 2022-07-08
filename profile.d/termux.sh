@@ -4,6 +4,9 @@ if type "termux-info" >/dev/null 2>&1; then
     export CARGO_BUILD_TARGET=aarch64-linux-android
     export CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
+    # To install numpy:
+    # MATHLIB="m" pip3 install numpy
+
     alias android_settings="am start -a android.intent.action.MAIN -n com.android.settings/.Settings"
     alias mplayer=termux-open
     alias startx="export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && ${RCPATH}/openbox/startx.sh"
