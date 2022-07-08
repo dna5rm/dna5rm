@@ -15,7 +15,7 @@ pkgs=(
     htop
     imagemagick ipcalc
     jq
-    libmaxminddb-tools libzmq
+    libmaxminddb-tools libxml2 libxslt libzmq
     man moreutils
     ncurses-utils neofetch nmap nodejs-lts
     openssh ossp-uuid
