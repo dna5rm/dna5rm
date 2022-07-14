@@ -80,6 +80,7 @@
         PlugInstall --sync
     endif
     unlet plug_install
+
 " }}}
 " MAPPINGS --------------------------------------------------------------- {{{
     " nnoremap - Allows you to map keys in normal mode.
@@ -115,7 +116,7 @@
     " The configuration options should be placed before `colorscheme sonokai`.
     let g:sonokai_style = 'shusia'
     let g:sonokai_better_performance = 1
-    colorscheme sonokai
+    colorscheme evening " sonokai seems broken
 " }}}
 " PLUGIN: AIRLINE -------------------------------------------------------- {{{
     " air-line
