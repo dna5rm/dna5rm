@@ -116,7 +116,7 @@
     " The configuration options should be placed before `colorscheme sonokai`.
     let g:sonokai_style = 'shusia'
     let g:sonokai_better_performance = 1
-    colorscheme evening " sonokai seems broken
+    colorscheme sonokai
 " }}}
 " PLUGIN: AIRLINE -------------------------------------------------------- {{{
     " air-line
