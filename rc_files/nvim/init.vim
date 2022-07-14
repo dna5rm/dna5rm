@@ -85,6 +85,9 @@
     " nnoremap - Allows you to map keys in normal mode.
     " inoremap - Allows you to map keys in insert mode.
     " vnoremap - Allows you to map keys in visual mode.
+
+    " Use <c-space> to trigger completion.
+    inoremap <silent><expr> <c-space> coc#refresh()
 " }}}
 " VIMSCRIPT -------------------------------------------------------------- {{{
     " This will enable code folding.
