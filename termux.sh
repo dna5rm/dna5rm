@@ -22,8 +22,7 @@ pkgs=(
     pdfgrep proot-distro pup python
     rsync rust
     screen steghide
-    termux-api
-    toilet
+    termux-api tidy toilet
     vim
     wget
 )
