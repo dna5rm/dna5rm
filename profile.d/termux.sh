@@ -11,6 +11,7 @@ if type "termux-info" >/dev/null 2>&1; then
     alias mplayer=termux-open
     alias startx="export DISPLAY=:0 PULSE_SERVER=tcp:127.0.0.1:4713 && ${RCPATH}/openbox/startx.sh"
     alias tts="termux-tts-speak -r 1.5"
+    alias vim=nvim
 
     function kp_user()
     {
