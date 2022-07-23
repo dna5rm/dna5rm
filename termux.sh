@@ -24,7 +24,7 @@ pkgs=(
     screen steghide
     termux-api tidy toilet
     vim
-    wget
+    wget whois
 )
 
 # Install X11 repo
