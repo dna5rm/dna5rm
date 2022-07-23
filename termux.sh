@@ -22,7 +22,7 @@ pkgs=(
     pdfgrep proot-distro pup python
     rsync rust
     screen steghide
-    termux-api tidy toilet
+    termux-api terraform tidy toilet
     vim
     wget whois
 )
