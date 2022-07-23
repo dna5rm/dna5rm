@@ -117,7 +117,7 @@
     let g:sonokai_style = 'shusia'
     let g:sonokai_better_performance = 1
 
-    " colorscheme sonokai
+    colorscheme sonokai
 " }}}
 " PLUGIN: AIRLINE -------------------------------------------------------- {{{
     " air-line
@@ -153,17 +153,15 @@
     let g:airline_theme='base16_flat'
 " }}}
 " PLUGIN: ALE ------------------------------------------------------------ {{{
-    " Remaps
-    nmap <silent> <C-K> <Plug>(ale_previous_wrap)
-    nmap <silent> <C-J> <Plug>(ale_next_wrap)
 
-    " Icons
-    let g:ale_sign_error = '⚠'
-    let g:ale_sign_warning = '⚐'
     highlight clear ALEErrorSign
     highlight clear ALEWarningSign
     hi link ALEErrorSign    GitGutterDelete
     hi link ALEWarningSign  Todo
+
+    " Remaps
+    nmap <silent> <C-K> <Plug>(ale_previous_wrap)
+    nmap <silent> <C-J> <Plug>(ale_next_wrap)
 
     " Dissabled linters (since COC takes care of these)
     let g:ale_linters = {
