@@ -1,7 +1,7 @@
 # Git Functions
 if command -v git &> /dev/null; then
 
-    # Push to repo
+    # Push to repo.
     function git_push ()
     {
         # Print reference if conditions missing.
@@ -20,5 +20,35 @@ if command -v git &> /dev/null; then
         fi
     }
 
-fi
+    # Pull all project repos.
+    function proj_pull ()
+    {
+        # Verify function requirements
+        for req in git ssh-add; do
+            type ${req} >/dev/null 2>&1 || {
+                # Skip basename if shell function
+                [[ "${0}" != "-bash" ]] && {
+                    echo >&2 "$(basename "${0}"):${FUNCNAME[0]} - cmd/function \"${req}\" is required!"
+                } || {
+                    echo >&2 "${FUNCNAME[0]} - cmd/function \"${req}\" is required!"
+                }
+                return 1
+            }
+        done
 
+        # This script is used to update all user projects.
+        if  [[ -d "${HOME}/Projects" ]] && \
+            [[ $(ssh-add -L) != "The agent has no identities." ]]; then
+
+            # Pull all project directories.
+            for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
+                echo "Updating $(basename ${repo})..."
+                cd "${repo}" && git pull
+            done
+        else
+            [[ ! -d "${HOME}/Projects" ]] && echo "Projects directory not found."
+            [[ $(ssh-add -L) == "The agent has no identities." ]] && echo "No SSH key found."
+        fi
+    }
+
+fi
