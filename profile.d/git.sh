@@ -51,4 +51,15 @@ if command -v git &> /dev/null; then
         fi
     }
 
+    # Status of all project repos.
+    function proj_status ()
+    {
+        # Report unpushed changes to any project.
+        for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
+            cd "${repo}" && [[ ! $(git status --porcelain | wc -l) -eq "0" ]] && {
+                echo "Changes detected in $(basename ${repo})..."
+            }
+        done
+    }
+
 fi
