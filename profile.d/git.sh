@@ -60,6 +60,7 @@ if command -v git &> /dev/null; then
                 echo "Changes detected in $(basename ${repo})..."
             }
         done
+        cd "${HOME}"
     }
 
 fi
