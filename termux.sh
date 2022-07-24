@@ -17,13 +17,12 @@ pkgs=(
     jq
     libmaxminddb-tools libxml2 libxslt libzmq
     man moreutils
-    ncurses-utils neofetch nmap nodejs-lts
+    ncurses-utils neofetch neovim nmap nodejs-lts
     openssh ossp-uuid
     pdfgrep proot-distro pup python
     rsync rust
     screen steghide
     termux-api terraform tidy toilet
-    vim
     wget whois
 )
 
