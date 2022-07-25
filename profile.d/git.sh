@@ -39,7 +39,7 @@ if command -v git &> /dev/null; then
         # This script is used to update all user projects.
         if  [[ -d "${HOME}/Projects" ]] && \
             [[ $(ssh-add -L) != "The agent has no identities." ]]; then
-
+            _PWD="$(pwd)"
             # Pull all project directories.
             for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
                 [[ -d "${repo}/.git" ]] && {
@@ -47,6 +47,7 @@ if command -v git &> /dev/null; then
                     cd "${repo}" && git pull
                 }
             done
+            cd "${_PWD}" && unset _PWD
         else
             [[ ! -d "${HOME}/Projects" ]] && echo "Projects directory not found."
             [[ $(ssh-add -L) == "The agent has no identities." ]] && echo "No SSH key found."
