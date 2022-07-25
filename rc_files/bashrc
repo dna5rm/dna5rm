@@ -72,12 +72,6 @@ fi
     }
 }
 
-#for cmd in neofetch; do
-#    type ${cmd} >/dev/null 2>&1 && {
-#        ${cmd} && echo;
-#    }
-#done
-
 # Provide a random quote from author.
 [[ -x "${HOME}/bin/quote.sh" ]] && {
     "${HOME}/bin/quote.sh"
