@@ -42,8 +42,10 @@ if command -v git &> /dev/null; then
 
             # Pull all project directories.
             for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
-                echo "Updating $(basename ${repo})..."
-                cd "${repo}" && git pull
+                [[ -d "${repo}/.git" ]] && {
+                    echo "Updating $(basename ${repo})..."
+                    cd "${repo}" && git pull
+                }
             done
         else
             [[ ! -d "${HOME}/Projects" ]] && echo "Projects directory not found."
@@ -56,8 +58,10 @@ if command -v git &> /dev/null; then
     {
         # Report unpushed changes to any project.
         for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
-            cd "${repo}" && [[ ! $(git status --porcelain | wc -l) -eq "0" ]] && {
-                echo "Changes detected in $(basename ${repo})..."
+            [[ -d "${repo}/.git" ]] && {
+                cd "${repo}" && [[ ! $(git status --porcelain | wc -l) -eq "0" ]] && {
+                    echo "Changes detected in $(basename ${repo})..."
+                }
             }
         done
         cd "${HOME}"
