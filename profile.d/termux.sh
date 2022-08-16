@@ -3,9 +3,7 @@ if type "termux-info" >/dev/null 2>&1; then
 
     export CARGO_BUILD_TARGET=aarch64-linux-android
     export CRYPTOGRAPHY_DONT_BUILD_RUST=1
-
-    # To install numpy:
-    # MATHLIB="m" pip3 install numpy
+    export MATHLIB="m"
 
     alias android_settings="am start -a android.intent.action.MAIN -n com.android.settings/.Settings"
     alias mplayer=termux-open
