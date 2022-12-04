@@ -11,7 +11,7 @@ pkgs=(
     dialog dnsutils
     exiftool expect
     fdupes ffmpeg file
-    git gnupg golang
+    git gnupg golang graphviz
     htop
     imagemagick ipcalc
     jq
