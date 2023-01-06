@@ -12,6 +12,15 @@ pkgs=(
     yamllint yfinance youtube-dl
 )
 
+django_pkgs=(
+    asgiref
+    Django django-crispy-forms django-mathfilters
+    gunicorn
+    rrdtool
+    sqlparse
+    timeago
+)
+
 arch_gnulinux=(
     ansible ansible-pylibssh asn1crypto
     bcrypt
@@ -34,6 +43,7 @@ function pkg_install ()
 pip install --upgrade pip && {
 
     pkg_install ${pkgs[@]}
+    pkg_install ${django_pkgs[@]}
 
     arch_pkgs=arch_$(uname -o | tr -cd '[a-zA-Z0-9_\-]' | awk '{print tolower($0)}')[@]
     [[ ! -z "${!arch_pkgs}" ]] && {
