@@ -8,6 +8,7 @@ pkgs=(
     pandas pip-search
     speedtest-cli snmpclitools
     telegram
+    uploadserver
     xmltodict
     yamllint yfinance youtube-dl
 )
