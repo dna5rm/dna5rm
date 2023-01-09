@@ -4,6 +4,7 @@
 #alias pyhttp="python3 -m http.server --directory ${HOME}/public_html"
 
 function pyhttpd () {
+    [[ -d "${HOME}/public_html" ]] || mkdir -p "${HOME}/public_html"
     python3 -c 'import uploadserver' 2> /dev/null
     [[ ${?} -eq 0 ]] && {
         # Ref: https://github.com/Densaugeo/uploadserver/blob/master/README.md
