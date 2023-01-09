@@ -1,7 +1,18 @@
 ### Python Functions ###
 
 # Aliases
-alias pyhttp="python3 -m http.server --directory ${HOME}/public_html"
+#alias pyhttp="python3 -m http.server --directory ${HOME}/public_html"
+
+function pyhttpd () {
+    python3 -c 'import uploadserver' 2> /dev/null
+    [[ ${?} -eq 0 ]] && {
+        # Ref: https://github.com/Densaugeo/uploadserver/blob/master/README.md
+        python3 -m uploadserver --theme dark --directory "${HOME}/public_html"
+    } || {
+        python3 -m http.server --directory "${HOME}/public_html"
+    }
+}
+
 
 # Update every module
 function pip-update ()
