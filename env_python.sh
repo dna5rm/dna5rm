@@ -17,9 +17,12 @@ django_pkgs=(
     asgiref
     Django django-crispy-forms django-mathfilters
     gunicorn
-    rrdtool
     sqlparse
     timeago
+)
+
+arch_android=(
+    cryptography==3.4.7
 )
 
 arch_gnulinux=(
@@ -38,18 +41,18 @@ arch_gnulinux=(
 function pkg_install ()
 {
     printf "Installing [%s]\n" $@ && echo
-    pip install $@
+    pip install $@ 2>> "${HOME}/$(basename ${0%.*}).log"
 }
 
-pip install --upgrade pip && {
-
-    pkg_install ${pkgs[@]}
-    pkg_install ${django_pkgs[@]}
+pip install --upgrade pip setuptools && {
 
     arch_pkgs=arch_$(uname -o | tr -cd '[a-zA-Z0-9_\-]' | awk '{print tolower($0)}')[@]
     [[ ! -z "${!arch_pkgs}" ]] && {
         echo
         pkg_install ${!arch_pkgs}
     }
+
+    pkg_install ${pkgs[@]}
+    pkg_install ${django_pkgs[@]}
 
 }
