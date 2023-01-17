@@ -45,6 +45,9 @@ else
     mkdir -p "${HOME}/Projects/venv${python_ver}"
     python3 -m venv "${HOME}/Projects/venv${python_ver}"
     source "${HOME}/Projects/venv${python_ver}/bin/activate"
+
+    # Build out the environment packages.
+    [[ -x "${RCPATH%/*}/env_python.sh" ]] && { "${RCPATH%/*}/env_python.sh"; }
 fi
 
 # If Google Cloud SDK exists.
