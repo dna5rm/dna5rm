@@ -47,7 +47,10 @@ else
     source "${HOME}/Projects/venv${python_ver}/bin/activate"
 
     # Build out the environment packages.
-    [[ -x "${RCPATH%/*}/env_python.sh" ]] && { "${RCPATH%/*}/env_python.sh"; }
+    [[ -x "${RCPATH%/*}/env_python.sh" ]] && {
+        "${RCPATH%/*}/env_python.sh"
+        find "${HOME}/env_python.log" -type f -size 0 -exec rm {} \;
+    }
 fi
 
 # If Google Cloud SDK exists.
