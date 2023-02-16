@@ -10,7 +10,7 @@ export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 export TMOUT
 
 # Update local $PATH
-for p in bin .bin .cargo/bin; do
+for p in bin opt .cargo/bin; do
     [[ -d "${HOME}/${p}" ]] && {
         PATH=${PATH}:"${HOME}/${p}"
     }
