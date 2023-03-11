@@ -35,7 +35,7 @@ arch_gnulinux=(
     MarkupSafe
     ncclient netaddr
     pan-python pan-os-python pandevice paramiko pyasn1 pycparser PyNaCl PyYAML
-    scp six
+    scp six smbus
 )
 
 function pkg_install ()
