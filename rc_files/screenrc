@@ -17,15 +17,20 @@ shell -$SHELL
 defutf8 on
 
 ### Programs opening by default ###
-screen    -t '' 1
-screen    -t '' 2
-screen    -t '' 3
-#screen    -t '' 4
-#screen    -t '' 5
-#screen    -t '' 6
-#screen    -t '' 7
-#screen    -t '' 8
-#screen    -t '' 9
+screen -t '' 0
+#screen -t '' 1
+#screen -t '' 2
+#screen -t '' 3
+#screen -t '' 4
+#screen -t '' 5
+#screen -t '' 6
+#screen -t '' 7
+#screen -t '' 8
+#screen -t '' 9
+#screen -t usb0  10 /dev/ttyUSB0
+#screen -t pa440 11 /dev/ttyUSB1
+#screen -t c3560 12 /dev/ttyUSB2
+#screen -t c9115 13 /dev/ttyUSB3
 
 ### Keys ###
 bind	c	screen 1	# Window numbering starts at 1, not 0.
