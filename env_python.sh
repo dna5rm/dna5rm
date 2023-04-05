@@ -21,6 +21,12 @@ django_pkgs=(
     timeago
 )
 
+RPi_pkgs=(
+    RPi.GPIO
+    enviroplus
+    smbus
+)
+
 arch_android=(
     cryptography==3.4.7
 )
@@ -53,6 +59,10 @@ pip install --upgrade pip setuptools && {
     }
 
     pkg_install ${pkgs[@]}
-    pkg_install ${django_pkgs[@]}
+    #pkg_install ${django_pkgs[@]}
 
+    # Raspberry Pi
+    [[ -f "/etc/rpi-issue" ]] && {
+        pkg_install ${RPi_pkgs[@]}
+    }
 }
