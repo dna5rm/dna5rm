@@ -37,7 +37,7 @@ arch_gnulinux=(
     cffi cryptography
     f5-sdk
     idna
-    jsnapy junos-eznc jxmlease
+    jmespath jsnapy junos-eznc jxmlease
     MarkupSafe
     ncclient netaddr
     pan-python pan-os-python pandevice paramiko pyasn1 pycparser PyNaCl PyYAML
