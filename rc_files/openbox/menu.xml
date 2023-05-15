@@ -57,6 +57,14 @@
     <menu id="apps-termux"/>
 
     <separator />
+    <item label="virt-manager">
+      <action name="Execute">
+        <command>virt-manager</command>
+        <startupnotify>
+          <enabled>yes</enabled>
+        </startupnotify>
+      </action>
+    </item>
     <item label="xfce4-terminal">
       <action name="Execute">
         <command>xfce4-terminal</command>
