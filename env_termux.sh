@@ -71,3 +71,7 @@ if type "termux-info" >/dev/null 2>&1; then
         }
     }
 fi
+
+# Finished, cleaning up.
+yes | apt autoremove
+yes | apt autoclean
