@@ -28,7 +28,7 @@ RPi_pkgs=(
 )
 
 arch_android=(
-    cryptography==3.4.7
+    cryptography
 )
 
 arch_gnulinux=(
