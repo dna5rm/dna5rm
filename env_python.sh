@@ -32,7 +32,7 @@ arch_android=(
 )
 
 arch_gnulinux=(
-    ansible ansible-pylibssh asn1crypto
+    ansible-navigator asn1crypto
     bcrypt
     cffi cryptography
     f5-sdk
