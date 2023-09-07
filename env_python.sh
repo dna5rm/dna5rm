@@ -5,7 +5,7 @@ pkgs=(
     matplotlib mplfinance
     numpy
     openai
-    pandas pip-search prompt_toolkit
+    pandas pip-search prompt_toolkit pyyaml
     speedtest-cli snmpclitools
     telegram
     uploadserver
