@@ -78,6 +78,16 @@ fi
     }
 }
 
+# Create a vault password file for ansible-vault.
+[[ ! -f "${HOME}/.vaultpw" ]] && {
+    type argon2 >/dev/null 2>&1 && {
+        echo
+        read -rs -p "Vault Passphrase: " vaultpw
+        install -m 400 -D <(argon2 "$(printf "%-8s" $(whoami))" -i -l 128 -r -v 13 <<<${vaultpw}) "${HOME}/.vaultpw"
+        unset vaultpw
+    }
+}
+
 # Provide a random quote from author.
 [[ -x "${HOME}/bin/quote.sh" ]] && {
     "${HOME}/bin/quote.sh"
