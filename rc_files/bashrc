@@ -5,6 +5,7 @@ readonly TMOUT=900
 
 export gpg_method="symmetric"
 export ANSIBLE_LOG_FILE="${HOME}/ansible.$(date +%Y%m%d_%H%M%S).log)"
+export EDITOR=nano
 export PYTHONHTTPSVERIFY=0
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 export TMOUT
@@ -79,12 +80,12 @@ fi
 }
 
 # Create a vault password file for ansible-vault.
-[[ ! -f "${HOME}/.vaultpw" ]] && {
+[[ ! -f "${HOME}/.vault" ]] && {
     type argon2 >/dev/null 2>&1 && {
         echo
-        read -rs -p "Vault Passphrase: " vaultpw
-        install -m 400 -D <(argon2 "$(printf "%-8s" $(whoami))" -i -l 128 -r -v 13 <<<${vaultpw}) "${HOME}/.vaultpw"
-        unset vaultpw
+        read -rs -p "Vault Passphrase: " vault
+        install -m 400 -D <(argon2 "$(printf "%-8s" $(whoami))" -i -l 128 -r -v 13 <<<${vault}) "${HOME}/.vault"
+        unset vault
     }
 }
 
