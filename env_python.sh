@@ -1,6 +1,7 @@
 #!/bin/env -S bash
 
 pkgs=(
+    chromaterm
     Jinja2
     matplotlib mplfinance
     numpy
