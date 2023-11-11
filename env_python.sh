@@ -1,7 +1,10 @@
 #!/bin/env -S bash
 
 pkgs=(
+<<<<<<< HEAD
     ansible-vault
+=======
+>>>>>>> 49cce7e953b553b3196357d8b43996fa6653c10f
     chromaterm
     Jinja2
     matplotlib mplfinance
