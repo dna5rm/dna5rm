@@ -7,7 +7,7 @@
     trap 'rm -rf -- "${TMPDIR}"' EXIT
 }
 
-# User Variables
+# User Variables.
 export gpg_method="symmetric"
 export ANSIBLE_LOG_FILE="${TMPDIR}/ansible.$(date +%Y%m%d_%H%M%S).log)"
 export EDITOR=nano
@@ -15,6 +15,9 @@ export PYTHONHTTPSVERIFY=0
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 export TMPDIR
 readonly TMOUT=900
+
+# Extra/Custom Variables.
+[[ -f "${HOME}/.vars" ]] && { . "${HOME}/.vars"; }
 
 # Update local $PATH
 for p in bin opt .cargo/bin; do
@@ -73,7 +76,7 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
     # extract sensitive credentials.
     vault > /dev/null 2>&1 && {
         # ssh private key & agent.
-        install -m 400 <(yq -r 'try(.'''${USER:-$(whoami)}'''[]|select(.private_key_content != null).private_key_content)' <(vault)) "${TMPDIR}/id_rsa"
+        install -m 400 <(yq -r '.'''${USER:-$(whoami)}'''[]|select(.private_key_content != null).private_key_content' <(vault)) "${TMPDIR}/id_rsa"
         eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { timeout 1s ssh-add -k "${TMPDIR}/id_rsa"; }
         echo
 
@@ -81,7 +84,7 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
         sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc"
         ## Generated from ~/.${USER:-$(whoami)}.vault :: $(date) ##
         add user        *       ${USER:-$(whoami)}
-        add password    *       $(yq -r 'try(.'''${USER:-$(whoami)}'''[] | select(.tacacs != null) | .tacacs+" "+.tacacs)' <(vault))
+        add password    *       $(yq -r '.'''${USER:-$(whoami)}'''[]|select(.tacacs != null)|[.tacacs,.tacacs]|@tsv' <(vault))
         add method      *       ssh telnet
 	EOF
     }
