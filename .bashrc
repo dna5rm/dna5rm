@@ -2,9 +2,10 @@
 [[ $- != *i* ]] && { return; }
 
 # Create a user tmp directory.
-readonly TMPDIR="$(mktemp -d)"
-readonly TMOUT=900
-trap 'rm -rf -- "${TMPDIR}"' EXIT
+[[ -z "${TMPDIR}" ]] && {
+    readonly TMPDIR="$(mktemp -d)"
+    trap 'rm -rf -- "${TMPDIR}"' EXIT
+}
 
 # User Variables
 export gpg_method="symmetric"
@@ -13,6 +14,7 @@ export EDITOR=nano
 export PYTHONHTTPSVERIFY=0
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 export TMPDIR
+readonly TMOUT=900
 
 # Update local $PATH
 for p in bin opt .cargo/bin; do
