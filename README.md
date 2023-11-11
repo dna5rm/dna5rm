@@ -17,9 +17,14 @@ Here are some ideas to get you started:
 
 <details>
   <summary>📈 GitHub Statistics</summary>
-
   ![GitHub Statistics](https://metrics.lecoq.io/dna5rm)
-
   ![Profile Views](https://komarev.com/ghpvc/?username=dna5rm)
-
 </details>
+
+## Bootstrap
+
+```bash
+for rc in $(find . -mindepth 1 -maxdepth 1 -name ".*" -not -name ".git*" -not -name ".config"); do
+    ln -sf "$(pwd)/$(basename "${rc}")" ~/
+done
+```

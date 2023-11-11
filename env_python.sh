@@ -1,6 +1,8 @@
 #!/bin/env -S bash
 
 pkgs=(
+    ansible-vault
+    chromaterm
     Jinja2
     matplotlib mplfinance
     numpy
@@ -10,7 +12,7 @@ pkgs=(
     telegram
     uploadserver
     xmltodict
-    yamllint yfinance youtube-dl
+    yamllint yfinance youtube-dl yq
 )
 
 django_pkgs=(
@@ -53,17 +55,14 @@ function pkg_install ()
 
 pip install --upgrade pip setuptools && {
 
-    arch_pkgs=arch_$(uname -o | tr -cd '[a-zA-Z0-9_\-]' | awk '{print tolower($0)}')[@]
-    [[ ! -z "${!arch_pkgs}" ]] && {
-        echo
-        pkg_install ${!arch_pkgs}
-    }
-
+    # Python modules - General
     pkg_install ${pkgs[@]}
     #pkg_install ${django_pkgs[@]}
 
-    # Raspberry Pi
-    [[ -f "/etc/rpi-issue" ]] && {
-        pkg_install ${RPi_pkgs[@]}
-    }
+    # Python modules - Arch Specific
+    arch_pkgs=arch_$(uname -o | tr -cd '[a-zA-Z0-9_\-]' | awk '{print tolower($0)}')[@]
+    [[ ! -z "${!arch_pkgs}" ]] && { echo; pkg_install ${!arch_pkgs}; }
+
+    # Python modules - Rpi
+    [[ -f "/etc/rpi-issue" ]] && { echo; pkg_install ${RPi_pkgs[@]}; }
 }

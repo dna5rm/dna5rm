@@ -1,4 +1,3 @@
 # Bash ENV
 
-Environment variables at startup of the Bash shell.
-
+My profile.d functions to load at login.
