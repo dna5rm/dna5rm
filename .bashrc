@@ -8,13 +8,13 @@
 }
 
 # User Variables.
+readonly TMOUT=900
 export gpg_method="symmetric"
 export ANSIBLE_LOG_FILE="${TMPDIR}/ansible.$(date +%Y%m%d_%H%M%S).log)"
 export EDITOR=nano
 export PYTHONHTTPSVERIFY=0
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 export TMPDIR
-readonly TMOUT=900
 
 # Extra/Custom Variables.
 [[ -f "${HOME}/.vars" ]] && { . "${HOME}/.vars"; }
