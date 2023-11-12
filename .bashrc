@@ -77,7 +77,7 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
     vault > /dev/null 2>&1 && {
         # ssh private key & agent.
         install -m 400 <(yq -r '.'''${USER:-$(whoami)}'''[]|select(.private_key_content != null).private_key_content' <(vault)) "${TMPDIR}/id_rsa"
-        eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { timeout 1s ssh-add -k "${TMPDIR}/id_rsa"; }
+        eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { timeout 1s ssh-add -k "${TMPDIR}/id_rsa" || alias id_rsa="ssh-add -k \"${TMPDIR}/id_rsa\""; }
         echo
 
         # .cloginrc for rancid.
