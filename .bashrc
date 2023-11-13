@@ -17,7 +17,7 @@ export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 export TMPDIR
 
 # Extra/Custom Variables.
-[[ -f "${HOME}/.vars" ]] && { . "${HOME}/.vars"; }
+[[ -f "${HOME}/.env" ]] && { . "${HOME}/.env"; }
 
 # Update local $PATH
 for p in bin opt .cargo/bin; do
