@@ -3,7 +3,7 @@
 # To use cp, not ln -s, this script to ~/shortcuts and make sure Termux:Widget is installed.
 
 # Extra/Custom Variables.
-[[ -f "${HOME}/.vars" ]] && { . "${HOME}/.vars"; }
+[[ -f "${HOME}/.env" ]] && { . "${HOME}/.env"; }
 
 # Entry point to script functions.
 [[ "${OPENAI_API_KEY}" != "sk-"* ]] && {
