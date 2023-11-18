@@ -35,7 +35,7 @@ arch_android=(
 
 arch_gnulinux=(
     ansible-navigator asn1crypto
-    bcrypt
+    bcrypt bpytop
     cffi cryptography
     f5-sdk
     idna
