@@ -15,7 +15,7 @@ if command -v git &> /dev/null; then
             echo
             git status 2> /dev/null
         else
-            git add --all && git commit -m "${1:-update}" &&\
+            git add --all && git commit -m "$(date +%Y-%m-%d" "%H:%M:%S)" &&\
             git push -u origin `git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
         fi
     }
