@@ -1,0 +1,12 @@
+color:
+  theme: custom
+  when: always
+icons:
+  theme: fancy
+  when: always
+hyperlink: never
+layout: grid
+no-symlink: false
+permission: rwx
+size: short
+symlink-arrow: "\u21D2"
