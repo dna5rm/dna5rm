@@ -27,15 +27,6 @@ for p in bin opt .cargo/bin; do
     [[ -d "${HOME}/${p}" ]] && { PATH=${PATH}:"${HOME}/${p}"; }
 done
 
-# Load aliases and functions.
-[[ -d "${RCPATH}/profile.d" ]] && {
-    for i in ${HOME}/.bash_aliases ${RCPATH}/profile.d/*.sh; do
-        [[ -r "${i}" ]] && {
-            [[ "${-#*i}" != "$-" ]] && { . "${i}"; } || { . "${i}" >/dev/null; }
-        }
-    done
-}
-
 # Python virtual environment.
 python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
 [[ -d "${HOME}/Projects/venv${python_ver}" ]] && {
@@ -51,6 +42,15 @@ python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,v
         "${RCPATH%/*}/env_python.sh"
         find "${HOME}/env_python.log" -type f -size 0 -exec rm {} \;
     }
+}
+
+# Load aliases and functions.
+[[ -d "${RCPATH}/profile.d" ]] && {
+    for i in ${HOME}/.bash_aliases ${RCPATH}/profile.d/*.sh; do
+        [[ -r "${i}" ]] && {
+            [[ "${-#*i}" != "$-" ]] && { . "${i}"; } || { . "${i}" >/dev/null; }
+        }
+    done
 }
 
 cmd_avail=() ## Check for common tools and profile.d functions.
