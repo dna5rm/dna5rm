@@ -2,10 +2,14 @@
 [[ $- != *i* ]] && { return; }
 
 # Create a user tmp directory.
-[[ -z "${TMPDIR}" ]] && {
-    readonly TMPDIR="$(mktemp -d)"
+if [[ -z "${TMPDIR}" ]]; then
     trap 'rm -rf -- "${TMPDIR}"' EXIT
-}
+    readonly TMPDIR="$(mktemp -d)"
+    export TMPDIR
+elif [[ ! -z "${TMPDIR}" ]] && [[ ! -d "${TMPDIR}" ]]; then
+    trap 'rm -rf -- "${TMPDIR}"' EXIT
+    mkdir -m 700 -p "${TMPDIR}"
+fi
 
 # User Variables.
 readonly TMOUT=900
@@ -14,7 +18,6 @@ export ANSIBLE_LOG_FILE="${TMPDIR}/ansible.$(date +%Y%m%d_%H%M%S).log)"
 export EDITOR=nano
 export PYTHONHTTPSVERIFY=0
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
-export TMPDIR
 
 # Extra/Custom Variables.
 [[ -f "${HOME}/.env" ]] && { . "${HOME}/.env"; }
