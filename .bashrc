@@ -54,7 +54,7 @@ python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,v
 }
 
 cmd_avail=() ## Check for common tools and profile.d functions.
-for cmd_check in ansible-vault argon2 contains_element crypt ct curl dialog git gpg jq openssl rsync shred tput toilet yq; do
+for cmd_check in ansible-vault argon2 contains_element crypt ct curl dialog figlet git gpg jq openssl rsync shred tput yq; do
     type ${cmd_check} >/dev/null 2>&1 && {
          cmd_avail+=( ${cmd_check} )
     } || {
@@ -80,7 +80,7 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
     vault > /dev/null 2>&1 && {
         # ssh private key & agent.
         install -m 400 <(yq -r '.'''${USER:-$(whoami)}'''|.private_key_content' <(vault)) "${TMPDIR}/id_rsa"
-        eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { timeout 1s ssh-add -k "${TMPDIR}/id_rsa" || alias id_rsa="ssh-add -k \"${TMPDIR}/id_rsa\""; }
+        eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { alias id_rsa="ssh-add -k \"${TMPDIR}/id_rsa\""; }
         echo
 
         # .cloginrc for rancid.
@@ -101,7 +101,7 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
 
     # Display the hostname at login.
     [[ -d "${HOME}/.fonts/figlet" ]] && {
-        uname -n | toilet -d "${HOME}/.fonts/figlet" -f elite --filter metal
+        uname -n | figlet -d "${HOME}/.fonts/figlet" -w $(tput cols) -f ansi_shadow
     }
 
     # Provide a random quote from author.
