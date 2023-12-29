@@ -101,7 +101,7 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
 
     # Display the hostname at login.
     [[ -d "${HOME}/.fonts/figlet" ]] && {
-        uname -n | figlet -d "${HOME}/.fonts/figlet" -w $(tput cols) -f ansi_shadow
+        uname -n | figlet -d "${HOME}/.fonts/figlet" -w $(tput cols) -f rectangles
     }
 
     # Provide a random quote from author.
