@@ -1,4 +1,4 @@
-#!/bin/env -S bash
+#!/bin/bash
 ## Inspirational quote.
 
 QUOTES="${RCPATH}/share/quotes.json"

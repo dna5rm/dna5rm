@@ -1,4 +1,4 @@
-#!/bin/env -S bash
+#!/bin/bash
 ## Secured bootstrap
 ## 2021 - Script from www.davideaves.com
 
