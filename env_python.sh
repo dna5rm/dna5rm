@@ -1,4 +1,4 @@
-#!/bin/env -S bash
+#!/bin/bash
 
 pkgs=(
     ansible-vault
