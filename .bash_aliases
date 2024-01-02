@@ -31,4 +31,3 @@ type lsd >/dev/null 2>&1 && {
 # Other verification aliases.
 type nano >/dev/null 2>&1 && { alias pico=nano; }
 type nmap >/dev/null 2>&1 && { alias nmap='nmap -Pn -oG -'; }
-type toilet >/dev/null 2>&1 && { alias toilet="toilet --directory \"${HOME}/.fonts/figlet\""; }
