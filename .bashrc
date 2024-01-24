@@ -109,4 +109,4 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
 
 } || {
     echo "[${HOSTNAME}] System unconfigured or profile.d not loaded!"
-}
+} && cd "${HOME}"
