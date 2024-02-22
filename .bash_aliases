@@ -1,5 +1,6 @@
 alias _listen="lsof -nP -iTCP -sTCP:LISTEN | sed '1 s,.*,$(tput smso)&$(tput sgr0),'"
 alias less='less --RAW-CONTROL-CHARS'
+alias jq_walk="jq -rc '[paths|map((\".\"+strings)//\"[]\")|join(\"\")]|unique[]'"
 alias rot13="tr a-zA-Z n-za-mN-ZA-M"
 
 # User vault
