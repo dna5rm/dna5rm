@@ -23,7 +23,7 @@ export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 [[ -f "${HOME}/.env" ]] && { . "${HOME}/.env"; }
 
 # Update local $PATH
-for p in bin .local/bin .local/opt .cargo/bin; do
+for p in bin .local/bin .local/opt go/bin .cargo/bin; do
     [[ -d "${HOME}/${p}" ]] && { PATH=${PATH}:"${HOME}/${p}"; }
 done
 
