@@ -79,15 +79,15 @@ echo ansible-vault argon2 yq | contains_element ${cmd_avail[@]} > /dev/null 2>&1
     # extract sensitive credentials.
     vault > /dev/null 2>&1 && {
         # ssh private key & agent.
-        install -m 400 <(yq -r '.'''${USER:-$(whoami)}'''|.private_key_content' <(vault)) "${TMPDIR}/id_rsa"
-        eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { alias id_rsa="ssh-add -k \"${TMPDIR}/id_rsa\""; }
+        install -m 400 <(yq -r --arg USER ${USER:-$(whoami)} '.[$USER]["private_key_content"]' <(vault)) "${TMPDIR}/id_rsa"
+        eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { timeout 1s ssh-add -k "${TMPDIR}/id_rsa" || alias id_rsa="ssh-add -k \"${TMPDIR}/id_rsa\""; }
         echo
 
         # .cloginrc for rancid.
-        sed -e 's/^[ \t]*//' <<-EOF | install -m 400 /dev/stdin "${TMPDIR}/.cloginrc"
+        sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 400 "${TMPDIR}/.cloginrc"
         ## Generated from ~/.${USER:-$(whoami)}.vault :: $(date) ##
         add user        *       ${USER:-$(whoami)}
-        add password    *       $(yq -r '.'''${USER:-$(whoami)}'''|[.tacacs,.tacacs]|@tsv' <(vault))
+        add password    *       $(printf "%q\t%q" $(yq -r --arg USER ${USER:-$(whoami)} '.[$USER]|[.tacacs,.tacacs]|@tsv' <(vault)))
         add method      *       ssh telnet
 	EOF
     }
