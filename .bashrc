@@ -15,6 +15,8 @@ fi
 readonly TMOUT=900
 export gpg_method="symmetric"
 export ANSIBLE_LOG_FILE="${TMPDIR}/ansible.$(date +%Y%m%d_%H%M%S).log)"
+export BAT_STYLE="plain"
+export BAT_THEME="Dracula"
 export EDITOR=nano
 export PYTHONHTTPSVERIFY=0
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
