@@ -33,3 +33,8 @@ type lsd >/dev/null 2>&1 && {
 type nano >/dev/null 2>&1 && { alias pico=nano; }
 type nmap >/dev/null 2>&1 && { alias nmap='nmap -Pn -oG -'; }
 type figlet >/dev/null 2>&1 && { alias toilet=figlet; }
+
+# Bat is installed
+type bat >/dev/null 2>&1 && {
+    alias cat=bat
+}
