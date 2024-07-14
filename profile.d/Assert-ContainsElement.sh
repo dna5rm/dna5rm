@@ -1,5 +1,4 @@
-function contains_element () {
-
+function Assert-ContainsElement () {
     # read input
     [[ -t 0 ]] && {
         local args=( ${@:2} )
@@ -12,7 +11,7 @@ function contains_element () {
     [[ -z "${args[@]}" ]] && {
         # Make sure here-doc EOF is tab indented!
         sed "s/^[ \t]*//" <<-EOF; return 2
-        # ${FUNCNAME[0]}: Check if array contains element.
+        # ${FUNCNAME[0]}: Asert if an array contains an element.
 
         ## Command Syntax
         > ArgIn: \`${FUNCNAME[0]} \${element} \${array}\`

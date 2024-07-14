@@ -4,11 +4,7 @@ alias jq_walk="jq -rc '[paths|map((\".\"+strings)//\"[]\")|join(\"\")]|unique[]'
 alias rot13="tr a-zA-Z n-za-mN-ZA-M"
 
 # User vault
-type ansible-vault >/dev/null 2>&1 && {
-    alias vault=vault_view
-    alias vault_edit="ansible-vault edit \"${HOME}/.${USER:-loginrc}.vault\" --vault-password-file \"${TMPDIR}/.vault\""
-    alias vault_view="ansible-vault view \"${HOME}/.${USER:-loginrc}.vault\" --vault-password-file \"${TMPDIR}/.vault\""
-}
+type Get-Vault >/dev/null 2>&1 && { alias vault=Get-Vault; }
 
 # terraform
 type terraform >/dev/null 2>&1 && {
@@ -35,6 +31,4 @@ type nmap >/dev/null 2>&1 && { alias nmap='nmap -Pn -oG -'; }
 type figlet >/dev/null 2>&1 && { alias toilet=figlet; }
 
 # Bat is installed
-type bat >/dev/null 2>&1 && {
-    alias cat=bat
-}
+type bat >/dev/null 2>&1 && { alias cat=bat; }
