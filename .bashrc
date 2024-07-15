@@ -41,7 +41,7 @@ python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,v
     done
 
     # Report if any commands are missing.
-    for i in $(awk -F'(\)|\()' '/Command_List=/{printf $(NF-1)}' ${RCPATH}/profile.d/*.sh | tr ' ' '\n' | sort -u | tr '\n' ' '); do
+    for i in $(awk -F'[)(]' '/Command_List=/{printf $(NF-1)}' ${RCPATH}/profile.d/*.sh | tr ' ' '\n' | sort -u | tr '\n' ' '); do
         type ${i} >/dev/null 2>&1 || { echo "[${HOSTNAME}] Command ${i} not found!"; }
     done
 
