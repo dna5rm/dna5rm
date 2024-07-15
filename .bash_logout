@@ -5,5 +5,5 @@
 
 # Output installed pip packages.
 if [[ -d "${HOME}/Projects" ]] && [[ ! -z "${python_ver}" ]]
- then python -m pip freeze > "${HOME}/Projects/venv${python_ver}/requirements.txt"
+ then python -m pip freeze > "${HOME}/.local/venv${python_ver}/requirements.txt"
 fi
