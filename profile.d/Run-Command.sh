@@ -13,3 +13,6 @@ function Run-Command() {
         echo "No commands to execute..."
     }
 }
+
+# Export Function
+export -f Run-Command

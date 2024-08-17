@@ -15,7 +15,11 @@ if [[ "$(uname -m)" == "x86_64" ]] && [[ -d "${HOME}/.local/bin" ]]; then
 
     # Oh My Posh - Run
     [[ -x "${HOME}/.local/bin/oh-my-posh" ]] && {
-        eval "$(oh-my-posh --init --shell bash --config ~/.cache/oh-my-posh/themes/dracula.omp.json)"
+        [[ -e "${RCPATH}/.omp.json" ]] && {
+            eval "$(oh-my-posh --init --shell bash --config "${RCPATH}/.omp.json")"
+        } || {
+            eval "$(oh-my-posh --init --shell bash --config "${HOME}/.cache/oh-my-posh/themes/dracula.omp.json")"
+        }
     }
 
 else

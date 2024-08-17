@@ -1,14 +1,17 @@
 #!/bin/bash
 
 pkgs=(
-    ansible-vault
-    chromaterm
+    ansible ansible-lint ansible-navigator ansible-vault asn1crypto
+    bcrypt
+    cdiff cffi chromaterm cryptography
+    f5-sdk fqdn
+    idna
+    j2cli Jinja2 jmespath jsnapy junos-eznc jxmlease
     Jinja2
-    matplotlib mplfinance
-    numpy
+    MarkupSafe ncclient netaddr netutils numpy
     openai
-    pandas pip-search prompt_toolkit pyyaml
-    speedtest-cli snmpclitools
+    pandas pandevice pan-os-python pan-python paramiko pip-search prompt_toolkit pyasn1 pycparser pylint PyNaCl PyYAML
+    scp sentencepiece six speedtest-cli snmpclitools
     telegram
     uploadserver
     xmltodict
