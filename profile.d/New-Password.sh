@@ -12,3 +12,6 @@ function New-Password () {
     echo "${password}"
 
 }
+
+# Export Functions
+export -f New-Password

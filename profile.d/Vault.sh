@@ -1,82 +1,129 @@
-# # Get vault password file for ansible-vault.
-# echo ansible-vault argon2 yq | Assert-ContainsElement ${cmd_avail[@]} > /dev/null 2>&1 && {
-
-#     [[ ! -f "${HOME}/.vault" ]] && {
-#         read -rs -t 15 -p "Vault Passphrase: " passphrase
-#         install -m 400 -D <(argon2 "$(printf "%-8s" ${USER:-$(whoami)})" -i -l 128 -r -v 13 <<< "${passphrase:-${HOSTNAME,,}}") "${TMPDIR}/.vault"
-#         unset passphrase && echo
-#     } || { ln -sf "${HOME}/.vault" "${TMPDIR}/.vault"; }
-
-#     # Create a vault if it does not exist.
-#     [[ ! -f "${HOME}/.${USER:-loginrc}.vault" ]] && {
-#         ansible-vault create "${HOME}/.${USER:-loginrc}.vault" --vault-password-file "${TMPDIR}/.vault"
-#     }
-
-#     # extract sensitive credentials.
-#     vault > /dev/null 2>&1 && {
-#         # ssh private key & agent.
-#         install -m 400 <(yq -r '.["'''${USER:-$(whoami)}'''"]["private_key_content"]' <(vault)) "${TMPDIR}/id_rsa"
-#         eval $(ssh-agent) && [[ -s "${TMPDIR}/id_rsa" ]] && { timeout 1s ssh-add -k "${TMPDIR}/id_rsa" || alias id_rsa="ssh-add -k \"${TMPDIR}/id_rsa\""; }
-#         echo
-
-#         # .cloginrc for rancid.
-#         sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 400 "${TMPDIR}/.cloginrc"
-#         ## Generated from ~/.${USER:-$(whoami)}.vault :: $(date) ##
-#         add user        *       ${USER:-$(whoami)}
-#         add password    *       $(printf "%q\t%q" $(yq -r '.["'''${USER:-$(whoami)}'''"]|[.tacacs,.tacacs]|@tsv' <(vault)))
-#         add method      *       ssh telnet
-# 	EOF
-#     }
-# }
-
 function Edit-Vault() {
     # Check if commands exist.
-    local Command_List=( ansible-vault Get-Hash )
-    local Command_Check=""; for Command_Check in ${Command_List[@]}; do
-        type ${Command_Check} >/dev/null 2>&1 || return 1
-    done && {
+    [[ "${0}" != -*"bash" ]] && {
+        local script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
+    } || {
+        local script="${FUNCNAME[0]}"
+    }
+
+    local test_cmds=( ansible-vault Get-Hash )
+    local test_result=()
+    mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
+
+    [[ "${#test_result[@]}" != 0 ]] && {
+        echo "${script} - requirement failure!"
+        for missing in "${test_result[@]}"; do
+            echo "> command \"${missing}\" is missing."
+        done; return 1
+    } || {
 
         # Extract vaulted data.
-        if [[ -f "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]]; then
-            ansible-vault edit "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
-        else
-            echo "[${HOSTNAME}] Unable to edit vaulted data!"
+        [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
+            ansible-vault edit "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file "${TMPDIR}/.vault"
+        } || {
+            echo "[${HOSTNAME}] Unable to edit vault data!"
             return 1
-        fi
+        }
 
-    } || return 1
+    }
 }
 
 function Get-Vault() {
-    # Check if commands exist.
-    local Command_List=( ansible-vault Get-Hash )
-    local Command_Check=""; for Command_Check in ${Command_List[@]}; do
-        type ${Command_Check} >/dev/null 2>&1 || return 1
-    done && {
+    [[ "${0}" != -*"bash" ]] && {
+        local script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
+    } || {
+        local script="${FUNCNAME[0]}"
+    }
 
-        if [[ -f "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]]; then
-            ansible-vault view "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
-        else
-            echo "[${HOSTNAME}] Unable to get vaulted data!"
+    local test_cmds=( ansible-vault Get-Hash )
+    local test_result=()
+    mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
+
+    [[ "${#test_result[@]}" != 0 ]] && {
+        echo "${script} - requirement failure!"
+        for missing in "${test_result[@]}"; do
+            echo "> command \"${missing}\" is missing."
+        done; return 1
+    } || {
+
+        [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-f "${TMPDIR}/.vault") ]] && {
+            ansible-vault view "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file "${TMPDIR}/.vault"
+        } || {
+            echo "[${HOSTNAME}] Unable to unvault data!"
             return 1
-        fi
+        }
 
-    } || return 1
+    }
 }
 
 function Initialize-Vault() {
     # Check if commands exist.
-    local Command_List=( ansible-vault Get-Hash )
-    local Command_Check=""; for Command_Check in ${Command_List[@]}; do
-        type ${Command_Check} >/dev/null 2>&1 || return 1
-    done && {
+    [[ "${0}" != -*"bash" ]] && {
+        local script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
+    } || {
+        local script="${FUNCNAME[0]}"
+    }
+
+    local test_cmds=( ansible-vault Get-Hash )
+    local test_result=()
+    mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
+
+    [[ "${#test_result[@]}" != 0 ]] && {
+        echo "${script} - requirement failure!"
+        for missing in "${test_result[@]}"; do
+            echo "> command \"${missing}\" is missing."
+        done; return 1
+    } || {
 
         if [[ ! -f "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]]; then
-            ansible-vault create "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
+            ansible-vault create "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file "${TMPDIR}/.vault"
         else
-            echo "[${HOSTNAME}] Unable to create new vault file!"
+            echo "[${HOSTNAME}] Unable to create new vault!"
             return 1
         fi
 
     } || return 1
+}
+
+function vssh () {
+    [[ "${0}" != -*"bash" ]] && {
+        local script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
+    } || {
+        local script="${FUNCNAME[0]}"
+    }
+
+    local test_cmds=( ansible-vault jq ssh vault yq Run-Command )
+    local test_result=()
+    mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
+
+    [[ ( -z "${1}" ) || ( "${#test_result[@]}" != 0 ) ]] && {
+        echo "${script} - requirement failure!"
+        [[ -z "${1}" ]] && { echo "> user input is required!"; }
+        for missing in "${test_result[@]}"; do
+            echo "> command \"${missing}\" is missing."
+        done; return 1
+    } || {
+        local id_rsa=`yq --arg host "${1,,}" -c '.hosts | to_entries[] | select(.key==$host)["value"]' <(Get-Vault)`
+
+        [[ ! -z "${id_rsa}" ]] && {
+            tmp_id="${TMPDIR:-/tmp}/${!}.id_rsa"
+            #trap 'rm -rf "${tmp_id}"' RETURN
+            install -m 400 -D <(yq -r '.private_key_content' <<< "${id_rsa}") "${tmp_id}"
+            Run-Command "ssh -i \"${tmp_id}\" -oHostKeyAlgorithms=+ssh-dss $(yq -r '.ansible_ssh_user' <<< "${id_rsa}")@${1,,} \"${*:2}\""
+        } || {
+            echo -e "${script} - null data returned from vault!\n"
+            jq -n '{"hosts":{"'''${1,,}'''":{"ansible_ssh_user":null,"private_key_content":null}}}'
+            return 1;
+        }
+    }
+}
+
+# Export Functions
+export -f Get-Vault
+export -f vssh
+
+# Load Alises
+type Get-Vault >/dev/null 2>&1 && {
+    alias vault=Get-Vault
+    alias vault_walk="yq -rc '[paths|map((\".\"+strings)//\"[]\")|join(\"\")]|unique[]' <(vault)"
 }
