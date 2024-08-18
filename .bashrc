@@ -91,9 +91,9 @@ done
     }; echo
 
     # Extract sensitive credentials.
-    type Get-Vault >/dev/null 2>&1 && [[ -e "${HOME}/.${USER:-$(whoami)}.vault" ]] && {
+    command -v Get-Vault &> /dev/null && [[ -e "${HOME}/.${USER:-$(whoami)}.vault" ]] && {
         # Create a .cloginrc for rancid.
-        sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 400 "${TMPDIR}/.cloginrc"
+        sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 600 "${TMPDIR}/.cloginrc"
         ## Generated from ~/.${USER:-$(whoami)}.vault :: $(date) ##
         add user        *       ${USER:-$(whoami)}
         add password    *       $(printf "%q\t%q" $(yq -r '.["'''${USER:-$(whoami)}'''"]|[.tacacs,.tacacs]|@tsv' <(Get-Vault)))
