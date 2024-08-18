@@ -133,7 +133,7 @@ done
         if command -v figlet &> /dev/null && {
             uname -n | figlet -d "${RCPATH}/.fonts/figlet" -f smbraille
         } || {
-            uname -n
+            echo ">>> $(uname -n) <<<"
         }; tput sgr0 2> /dev/null
     }; echo
 }
