@@ -130,10 +130,10 @@ done
         uname -n | toilet -d "${RCPATH}/.fonts/figlet" -f smbraille --metal
     } || {
         tput setaf 4 2> /dev/null
-        if command -v figlet &> /dev/null && {
+        if command -v figlet &> /dev/null; then
             uname -n | figlet -d "${RCPATH}/.fonts/figlet" -f smbraille
-        } || {
+        else
             echo ">>> $(uname -n) <<<"
-        }; tput sgr0 2> /dev/null
+        fi; tput sgr0 2> /dev/null
     }; echo
 }
