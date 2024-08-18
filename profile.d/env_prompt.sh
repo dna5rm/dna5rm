@@ -5,13 +5,14 @@
 #
 # Color codes are for 8-bit ANSI: https://en.wikipedia.org/wiki/ANSI_escape_code
 
-if [[ "$(uname -m)" == "x86_64" ]] && [[ -d "${HOME}/.local/bin" ]]; then
+[[ -d "${HOME}/.local/bin" ]] && {
 
     # Oh My Posh - Install
-    [[ ! -x "${HOME}/.local/bin/oh-my-posh" ]] && {
-        # Install Oh My Posh
+    if [[ "$(uname -m)" == "x86_64" ]] && [[ ! -x "${HOME}/.local/bin/oh-my-posh" ]]; then
         curl -s https://ohmyposh.dev/install.sh | bash -s -- -d ~/.local/bin
-    }
+    elif [[ "$(uname -m)" == "aarch64" ]] && [[ ! -x "${HOME}/.local/bin/oh-my-posh" ]]; then
+        wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v14.10.0/posh-linux-arm64 -O ~/.local/bin/oh-my-posh
+    fi
 
     # Oh My Posh - Run
     [[ -x "${HOME}/.local/bin/oh-my-posh" ]] && {
@@ -22,7 +23,7 @@ if [[ "$(uname -m)" == "x86_64" ]] && [[ -d "${HOME}/.local/bin" ]]; then
         }
     }
 
-else
+} || {
 
     function set_prompt() {
         # Set the PS1 configuration for the prompt
@@ -184,4 +185,4 @@ else
 
     PROMPT_COMMAND=set_prompt
 
-fi
+}
