@@ -6,23 +6,23 @@
 # Packages to install
 pkgs=(
     asciidoctor
-    bc binutils bmon build-essential
+    bat bc binutils bmon build-essential
     clamav curl
     dialog dnsutils
     exiftool expect
     fdupes ffmpeg file
-    git gnupg golang graphviz
+    git glow gnupg golang graphviz
     htop
     imagemagick ipcalc
     jq
-    libandroid-spawn libmaxminddb-tools libxml2 libxslt libzmq
+    libandroid-spawn libmaxminddb-tools libxml2 libxslt libzmq lsd
     man moreutils
     ncurses-utils neofetch neovim nmap nodejs-lts
     openssh ossp-uuid
     pandoc pdfgrep proot-distro pup python
     rsync rust
     screen steghide
-    termux-api tidy toilet
+    termux-api tidy tmux toilet
     wget whois
 )
 
