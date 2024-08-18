@@ -2,7 +2,7 @@
 [[ $- != *i* ]] && { return; }
 
 # Set the default shell options.
-readonly RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
+export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 readonly TMOUT=900
 
 # Create a user tmp directory.
@@ -37,7 +37,13 @@ done
     }; echo
 
     # Load ssh key fingerprint as ssh_hash.
-    type Get-SshKeyFingerprint >/dev/null 2>&1 && export ssh_hash=( `Get-SshKeyFingerprint` )
+    type Get-SshKeyFingerprint >/dev/null 2>&1 && {
+        export ssh_hash=( `Get-SshKeyFingerprint` )
+        [[ -z "${USER}" ]] && {
+            # Set $USER if not already set.
+            export USER="${ssh_hash[1]%@*}"
+        }
+    }
 
     # Load ssh key into ssh-agent if ssh_hash is set.
     [[ -n "${ssh_hash[*]}" ]] && {
@@ -120,6 +126,9 @@ done
 
 # Display the hostname at login.
 [[ -d "${RCPATH}/.fonts/figlet" ]] && {
-    uname -n | toilet -d "${RCPATH}/.fonts/figlet" -f smbraille
-    echo
+    [[ -s "$(command -v toilet)" ]] && {
+        uname -n | toilet -d "${RCPATH}/.fonts/figlet" -f smbraille --metal
+    } || {
+        uname -n | figlet -d "${RCPATH}/.fonts/figlet" -f smbraille
+    }; echo
 }
