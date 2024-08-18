@@ -100,7 +100,7 @@ done
         add method      *       ssh telnet
 	EOF
     } || {
-        echo -e "\n[${HOSTNAME}] Run the \"$(tput setaf 2)Initialize-Vault$(tput sgr0)\" shell function to create a vault."
+        echo -e "\n[${HOSTNAME}] Run the \"$(tput setaf 2 2> /dev/null)Initialize-Vault$(tput sgr0 2> /dev/null)\" shell function to create a vault."
     }
 } || {
     echo -e "\n[${HOSTNAME}] System unconfigured or profile.d not loaded!\n"
@@ -119,9 +119,9 @@ done
 
 # Provide a random quote from author.
 [[ -x "${RCPATH}/quote.sh" ]] && {
-    tput setaf 8
+    tput setaf 8 2> /dev/null
     awk 'BEGIN{print "  +-"}//{print "  | ",$0}END{print "  +-\n"}' <("${RCPATH}/quote.sh")
-    tput sgr0
+    tput sgr0 2> /dev/null
 }
 
 # Display the hostname at login.
@@ -129,6 +129,8 @@ done
     [[ -s "$(command -v toilet)" ]] && {
         uname -n | toilet -d "${RCPATH}/.fonts/figlet" -f smbraille --metal
     } || {
+        tput setaf 4 2> /dev/null
         uname -n | figlet -d "${RCPATH}/.fonts/figlet" -f smbraille
+        tput sgr0 2> /dev/null
     }; echo
 }
