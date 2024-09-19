@@ -51,11 +51,6 @@ done
         }
     }; echo
 
-<<<<<<< HEAD
-    # Extract sensitive credentials.
-    command -v Get-Vault &> /dev/null && [[ -e "${HOME}/.${USER:-$(whoami)}.vault" ]] && {
-        # Create a .cloginrc for rancid.
-=======
     # SSH - START BLOCK (logging in via SSH)
     [[ ! -z "${SSH_CONNECTION}" ]] && {
 
@@ -127,7 +122,6 @@ done
         add method      *       ssh telnet
 	EOF
     } || {
->>>>>>> 7809d94 (2024-09-19 02:45:39)
         sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 600 "${TMPDIR}/.cloginrc"
         ## Generated from ~/.${USER:-$(whoami)}.vault :: $(date) ##
         add user        *       ${USER:-$(whoami)}
