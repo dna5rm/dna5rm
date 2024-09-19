@@ -1,26 +1,41 @@
-#
 # Run-time configuration file for dialog
-#
-# Types of values:
-#
-# Number     -  <number>
-# String     -  "string"
-# Boolean    -  <ON|OFF>
-# Attribute  -  (foreground,background,highlight?,underline?,reverse?)
-#
-# Colors: BLACK,RED,GREEN,YELLOW,BLUE,MAGENTA,CYAN,WHITE
 
-border_color = (WHITE,WHITE,ON,OFF,OFF)
-button_active_color = (BLACK,BLUE,OFF,OFF,OFF)
-button_key_inactive_color = (YELLOW,WHITE,ON,ON,ON)
-button_label_active_color = (YELLOW,BLUE,OFF,OFF,OFF)
-button_label_inactive_color = (BLACK,WHITE,ON,OFF,OFF)
-dialog_color = (BLACK,WHITE,OFF,OFF,OFF)
-form_item_readonly_color = (CYAN,WHITE,ON,OFF,OFF)
-form_text_color = (WHITE,CYAN,ON,OFF,OFF)
-itemhelp_color = (WHITE,BLACK,OFF,OFF,OFF)
-screen_color = (MAGENTA,BLACK,OFF,OFF,OFF)
-shadow_color = (BLACK,BLACK,ON,OFF,ON)
-tag_key_selected_color = (YELLOW,BLUE,ON,OFF,ON)
-title_color = (RED,WHITE,OFF,OFF,OFF)
-uarrow_color = (GREEN,WHITE,ON,OFF,OFF)
+aspect = 0
+separate_widget = ""
+tab_len = 0
+visit_items = OFF
+use_shadow = OFF
+use_colors = ON
+
+# Set the screen colors
+screen_color = (WHITE,BLACK,OFF)
+
+# Set the dialog box colors
+title_color = (MAGENTA,BLACK,ON)
+dialog_color = screen_color
+border_color = (CYAN,BLACK,OFF)
+border2_color = border_color
+menubox_color = (BLACK,BLACK,OFF)
+menubox_border_color = border_color
+menubox_border2_color = border_color
+shadow_color = (BLACK,CYAN,ON)
+
+# Set the button colors
+button_active_color = (BLACK,BLACK,ON)
+button_inactive_color = (BLACK,BLACK,OFF)
+button_key_active_color = (RED,BLACK,OFF)
+button_key_inactive_color = (RED,BLACK,ON)
+button_label_active_color = (MAGENTA,BLACK,ON)
+button_label_inactive_color = (BLUE,BLACK,OFF)
+
+# Set the input box colors
+inputbox_color = (WHITE,BLACK,OFF)
+
+# Set the menu item colors
+item_color = (BLACK,BLACK,ON)
+item_selected_color = (WHITE,BLACK,ON)
+itemhelp_color = (CYAN,BLACK,ON)
+tag_color = (YELLOW,BLACK,OFF)
+tag_selected_color = (YELLOW,BLACK,ON)
+tag_key_color = (RED,BLACK,OFF)
+tag_key_selected_color = (RED,BLACK,ON)
