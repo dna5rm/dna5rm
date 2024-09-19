@@ -19,7 +19,7 @@ function Edit-Vault() {
 
         # Extract vaulted data.
         [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
-            ansible-vault edit "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file "${TMPDIR}/.vault"
+            ansible-vault edit "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
         } || {
             echo "[${HOSTNAME}] Unable to edit vault data!"
             return 1
@@ -46,8 +46,8 @@ function Get-Vault() {
         done; return 1
     } || {
 
-        [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-f "${TMPDIR}/.vault") ]] && {
-            ansible-vault view "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file "${TMPDIR}/.vault"
+        [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
+            ansible-vault view "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
         } || {
             echo "[${HOSTNAME}] Unable to unvault data!"
             return 1
@@ -75,14 +75,74 @@ function Initialize-Vault() {
         done; return 1
     } || {
 
-        if [[ ! -f "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]]; then
-            ansible-vault create "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file "${TMPDIR}/.vault"
-        else
+        [[ (! -f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
+            ansible-vault create "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
+        } || {
             echo "[${HOSTNAME}] Unable to create new vault!"
             return 1
-        fi
+        }
 
     } || return 1
+}
+
+function Protect-Vault() {
+    # Check if commands exist.
+    [[ "${0}" != -*"bash" ]] && {
+        local script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
+    } || {
+        local script="${FUNCNAME[0]}"
+    }
+
+    local test_cmds=( ansible-vault Get-Hash )
+    local test_result=()
+    mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
+
+    [[ "${#test_result[@]}" != 0 ]] && {
+        echo "${script} - requirement failure!"
+        for missing in "${test_result[@]}"; do
+            echo "> command \"${missing}\" is missing."
+        done; return 1
+    } || {
+
+        # Encrypt unvaulted data.
+        [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
+            ansible-vault encrypt "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
+        } || {
+            echo "[${HOSTNAME}] Unable perform vault action!"
+            return 1
+        }
+
+    }
+}
+
+function Unprotect-Vault() {
+    # Check if commands exist.
+    [[ "${0}" != -*"bash" ]] && {
+        local script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
+    } || {
+        local script="${FUNCNAME[0]}"
+    }
+
+    local test_cmds=( ansible-vault Get-Hash )
+    local test_result=()
+    mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
+
+    [[ "${#test_result[@]}" != 0 ]] && {
+        echo "${script} - requirement failure!"
+        for missing in "${test_result[@]}"; do
+            echo "> command \"${missing}\" is missing."
+        done; return 1
+    } || {
+
+        # Decrypt vaulted data.
+        [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
+            ansible-vault decrypt "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
+        } || {
+            echo "[${HOSTNAME}] Unable perform vault action!"
+            return 1
+        }
+
+    }
 }
 
 function vssh () {
@@ -107,7 +167,7 @@ function vssh () {
 
         [[ ! -z "${id_rsa}" ]] && {
             tmp_id="${TMPDIR:-/tmp}/${!}.id_rsa"
-            #trap 'rm -rf "${tmp_id}"' RETURN
+            trap 'rm -rf "${tmp_id}"; trap - RETURN' RETURN
             install -m 400 -D <(yq -r '.private_key_content' <<< "${id_rsa}") "${tmp_id}"
             Run-Command "ssh -i \"${tmp_id}\" -oHostKeyAlgorithms=+ssh-dss $(yq -r '.ansible_ssh_user' <<< "${id_rsa}")@${1,,} \"${*:2}\""
         } || {

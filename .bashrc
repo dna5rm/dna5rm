@@ -7,11 +7,15 @@ readonly TMOUT=900
 
 # Create a user tmp directory.
 if [[ -z "${TMPDIR}" ]]; then
+    # Prune any previously created tmp directories +7 days.
+    [[ -d "/tmp" ]] && {
+        find /tmp -maxdepth 1 -name tmp.* -type d -user ${USER:-$(whoami)} -mtime +7 -exec rm -rf {} +
+    }
     trap 'rm -rf -- "${TMPDIR}"' EXIT
     readonly TMPDIR="$(mktemp -d)"
     export TMPDIR
 elif [[ ! -z "${TMPDIR}" ]] && [[ ! -d "${TMPDIR}" ]]; then
-    trap 'rm -rf -- "${TMPDIR}"' EXIT
+    trap 'rm -rf -- "${TMPDIR}"' EXIT LOGOUT
     mkdir -m 700 -p "${TMPDIR}"
 fi && echo -e "Temp Directory: ${TMPDIR}\n"
 
@@ -20,58 +24,15 @@ for p in bin .local/bin .local/opt go/bin .cargo/bin; do
     [[ -d "${HOME}/${p}" ]] && { PATH="${HOME}/${p}":${PATH}; }
 done
 
-# Setup user shell environment.
+# Setup RCPATH environment.
 [[ -d "${RCPATH}/profile.d" ]] && {
+
     # Load profile.d scripts.
     for i in ${RCPATH}/profile.d/*.sh ${RCPATH}/.aliases ${RCPATH}/.env; do
         [[ -r "${i}" ]] && {
             [[ "${-#*i}" != "$-" ]] && { . "${i}"; } || { . "${i}" >/dev/null; }
         }
     done
-
-    # Generate or display a SSH private key if missing.
-    [[ ! -f "${HOME}/.ssh/id_rsa" ]] && {
-        Run-Command "ssh-keygen -t rsa -b 4096 -N \"\" -C \"${USER:-$(whoami)}@$(domainname -y 2> /dev/null || echo "(none)")\" -f \"${HOME}/.ssh/id_rsa\""
-    } || {
-        Run-Command "ssh-keygen -lvf \"${HOME}/.ssh/id_rsa\""
-    }; echo
-
-    # Load ssh key fingerprint as ssh_hash.
-    type Get-SshKeyFingerprint >/dev/null 2>&1 && {
-        export ssh_hash=( `Get-SshKeyFingerprint` )
-        [[ -z "${USER}" ]] && {
-            # Set $USER if not already set.
-            export USER="${ssh_hash[1]%@*}"
-        }
-    }
-
-    # Load ssh key into ssh-agent if ssh_hash is set.
-    [[ -n "${ssh_hash[*]}" ]] && {
-        eval $(ssh-agent) && {
-            timeout 1s ssh-add -k "${HOME}/.ssh/id_rsa" || alias id_rsa="ssh-add -k \"${HOME}/.ssh/id_rsa\""
-            install -m 400 -D <(Get-Hash "${ssh_hash[0]}") "${TMPDIR}/.vault"
-        }; echo
-
-        ssh-add -l &>/dev/null
-        # Freshen ~/Projects folder if stale. 604800
-        [[ ( "${?}" == 0 ) ]] && {
-            [[ ( -d "${HOME}/Projects" && $(( $(date +%s) - $(stat -c %Y "${HOME}/Projects") )) -gt "604800" ) ]] && {
-                # Update all in ~/Projects with git.
-                for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
-                    [[ -d "${repo}/.git" ]] && {
-                        Run-Command "git -C \"${repo}\" pull"
-                        [[ -n "$(git -C "${repo}" submodule status)" ]] && {
-                            Run-Command "git -C \"${repo}\" pull --recurse-submodules"
-                        }
-                    }
-                done; touch "${HOME}/Projects"
-            } || {
-                # Update RCPATH with git.
-                Run-Command "git -C \"${RCPATH}\" checkout master"
-                Run-Command "git -C \"${RCPATH}\" pull -f"
-            }; echo
-        }
-    }
 
     # Local python virtual environment.
     python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
@@ -90,18 +51,94 @@ done
         }
     }; echo
 
+<<<<<<< HEAD
     # Extract sensitive credentials.
     command -v Get-Vault &> /dev/null && [[ -e "${HOME}/.${USER:-$(whoami)}.vault" ]] && {
         # Create a .cloginrc for rancid.
+=======
+    # SSH - START BLOCK (logging in via SSH)
+    [[ ! -z "${SSH_CONNECTION}" ]] && {
+
+        # Generate or display a SSH private key if missing.
+        [[ ! -f "${HOME}/.ssh/id_rsa" ]] && {
+            Run-Command "ssh-keygen -t rsa -b 4096 -N \"\" -C \"${USER:-$(whoami)}@$(domainname -y 2> /dev/null || echo "(none)")\" -f \"${HOME}/.ssh/id_rsa\""
+        } || {
+            Run-Command "ssh-keygen -lvf \"${HOME}/.ssh/id_rsa\""
+        }; echo
+
+        # Load ssh key fingerprint as ssh_hash.
+        type Get-SshKeyFingerprint >/dev/null 2>&1 && {
+            export ssh_hash=( `Get-SshKeyFingerprint` )
+            [[ -z "${USER}" ]] && {
+                # Set $USER if not already set.
+                export USER="${ssh_hash[1]%@*}"
+            }
+        }
+
+        # Load ssh key into ssh-agent if ssh_hash is set.
+        [[ -n "${ssh_hash[*]}" ]] && {
+            eval $(ssh-agent) && {
+                timeout 1s ssh-add -k "${HOME}/.ssh/id_rsa" || alias id_rsa="ssh-add -k \"${HOME}/.ssh/id_rsa\""
+            }; echo
+
+            ssh-add -l &>/dev/null
+            # Freshen ~/Projects folder if stale. 604800
+            [[ ( "${?}" == 0 ) ]] && {
+                [[ ( -d "${HOME}/Projects" && $(( $(date +%s) - $(stat -c %Y "${HOME}/Projects") )) -gt "604800" ) ]] && {
+                    # Update all in ~/Projects with git.
+                    for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
+                        [[ -d "${repo}/.git" ]] && {
+                            Run-Command "git -C \"${repo}\" pull"
+                            [[ -n "$(git -C "${repo}" submodule status)" ]] && {
+                                Run-Command "git -C \"${repo}\" pull --recurse-submodules"
+                            }
+                        }
+                    done; touch "${HOME}/Projects"
+                } || {
+                    # Update RCPATH with git.
+                    Run-Command "git -C \"${RCPATH}\" checkout master"
+                    Run-Command "git -C \"${RCPATH}\" pull -f"
+                }; echo
+            }
+        }
+
+    }
+    # SSH - END BLOCK
+
+    # Unvault sensitive credentials.
+    if type Get-Vault >/dev/null 2>&1; then
+    if [[ -e "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]]; then
+        # Load .env within the vault into the user environment.
+        yq -r '.env | to_entries[]' <(vault) &> /dev/null && {
+            eval "$(yq -r '.env | to_entries[] | "export " + .key + "=" + (.value|tostring|@sh)' 2> /dev/null <(vault))"
+        } || {
+            tput setaf 8 2> /dev/null
+            echo -e "### No vaulted environmental variables found. ###"
+            # awk '//{print "#",$0}' <(yq -y -n '{"env":{"ENV_VAR":"Example Variable"}}')
+            tput sgr0 2> /dev/null; echo
+        }
+
+    # Create a .cloginrc in $TMPDIR for rancid.
+	[[ ! -z "${TACACS}" ]] && {
+        sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 600 "${TMPDIR}/.cloginrc"
+        ## Generated from \${TACACS} variable :: $(date) ##
+        add user        *       ${USER:-$(whoami)}
+        add password    *       $(printf "%q %q" "${TACACS}" "${TACACS}")
+        add method      *       ssh telnet
+	EOF
+    } || {
+>>>>>>> 7809d94 (2024-09-19 02:45:39)
         sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 600 "${TMPDIR}/.cloginrc"
         ## Generated from ~/.${USER:-$(whoami)}.vault :: $(date) ##
         add user        *       ${USER:-$(whoami)}
         add password    *       $(printf "%q\t%q" $(yq -r '.["'''${USER:-$(whoami)}'''"]|[.tacacs,.tacacs]|@tsv' <(Get-Vault)))
         add method      *       ssh telnet
 	EOF
-    } || {
-        echo -e "\n[${HOSTNAME}] Run the \"$(tput setaf 2 2> /dev/null)Initialize-Vault$(tput sgr0 2> /dev/null)\" shell function to create a vault."
     }
+    elif [[ -n "${ssh_hash[*]}" ]]; then
+        echo -e "\n[${HOSTNAME}] Run the \"$(tput setaf 2 2> /dev/null)Initialize-Vault$(tput sgr0 2> /dev/null)\" shell function to create a vault.\n"
+    fi; fi
+
 } || {
     echo -e "\n[${HOSTNAME}] System unconfigured or profile.d not loaded!\n"
 }
