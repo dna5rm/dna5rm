@@ -26,16 +26,20 @@ if command -v git &> /dev/null; then
 
     function git_diff ()
     {
+        # Determine the script name based on whether it's run as a script or a function
         [[ "${0}" != -*"bash" ]] && {
             local script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
         } || {
             local script="${FUNCNAME[0]}"
         }
 
-        local test_cmds=( dialog git tput Run-Command )
+        # List of required commands
+        local test_cmds=( dialog git tput vimdiff Run-Command )
         local test_result=()
+        # Check if all required commands are available
         mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
 
+        # Check for missing commands and if the input file exists
         [[ "${#test_result[@]}" != 0 || ! -f "${1}" ]] && {
             echo "${script} - requirement failure!"
             [[ "${#test_result[@]}" != 0 ]] && {
@@ -45,21 +49,31 @@ if command -v git &> /dev/null; then
             }
             return 1
         } || {
+            # Get the full path of the file and the root of the git repository
             local file=$(readlink -f "${1}")
             local repo_root=$(git -C "$(dirname "${file}")" rev-parse --show-toplevel 2>/dev/null)
+            local git_logfmt="%s (%cr - %an)"
 
+            # Check if the file is in a git repository
             [[ ! -d "${repo_root}" ]] && {
                 echo "${script}: File \"$(basename ${file})\" is not in a git repository"
                 return 1
             } || {
-                local git_commit="$(dialog --stdout --title " Historical Diff " --menu "$(basename "${repo_root}"): ${file/${repo_root}/}" 20 0 18 --file <(awk -F'|' '{printf "%s \"%s\"\n", $1,$2}' <(git -C "${repo_root}" log --pretty=format:"%h|%s (%cr - %an)" -- "${file}")))"
-                Run-Command "git -C \"${repo_root}\" diff --shortstat ${git_commit} \"${file}\""
-                echo
+                # Show a dialog to select a commit for diff
+                local git_commit="$(dialog --stdout --backtitle "${script}" --title " Historical Diff " --menu "$(basename "${repo_root}"): ${file/${repo_root}/}" 20 0 18 --file <(awk -F'|' '{printf "%s \"%s\"\n", $1,$2}' <(git -C "${repo_root}" log --pretty=format:"%h|${git_logfmt}" -- "${file}")))"
 
-                [[ "${2,,}" == *"vim"* ]] && {
-                    Run-Command "git -C \"${repo_root}\" difftool --tool=vimdiff --no-prompt ${git_commit} \"${file}\"" 2> /dev/null
-                } || {
-                    Run-Command "git -C \"${repo_root}\" difftool --no-prompt --extcmd='diff -y' ${git_commit} \"${file}\""
+                [[ ! -z "${git_commit}" ]] && {
+                    # Show diff stats
+                    Run-Command "git -C \"${repo_root}\" diff --shortstat ${git_commit} \"${file}\""
+                    echo
+
+                    # Show diff using vimdiff or side-by-side diff based on the second argument
+                    [[ "${2,,}" == *"vim"* ]] && {
+                        Run-Command "git -C \"${repo_root}\" difftool --tool=vimdiff --no-prompt ${git_commit} \"${file}\"" 2> /dev/null
+                    } || {
+                        Run-Command "git -C \"${repo_root}\" difftool --no-prompt --extcmd='diff -y' ${git_commit} \"${file}\""
+        
+                    }
                 }
             }
         }
