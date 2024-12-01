@@ -1,5 +1,6 @@
 # Load the following if PyYAML available to python.
-[[ "$(python3 -c "import pkgutil; print(0) if pkgutil.find_loader('yaml') else print(1)")" == 0 ]] && {
+#[[ "$(python3 -c "import pkgutil; print(0) if pkgutil.get_loader('yaml').get_filename() else print(1)")" == 0 ]]
+python3 -c 'import yaml' && {
     function j2y() {
         # Get the function source.
         [[ "${0}" != -*"bash" ]] && {
@@ -38,7 +39,8 @@
 }
 
 # Load the following if xmltodict available to python.
-[[ "$(python3 -c "import pkgutil; print(0) if pkgutil.find_loader('xmltodict') else print(1)")" == 0 ]] && {
+#[[ "$(python3 -c "import pkgutil; print(0) if pkgutil.get_loader('xmltodict').get_filename() else print(1)")" == 0 ]]
+python3 -c 'import xmltodict' && {
     function x2j() {
         # Get the function source.
         [[ "${0}" != -*"bash" ]] && {
