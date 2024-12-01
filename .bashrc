@@ -19,6 +19,7 @@ elif [[ ! -z "${TMPDIR}" ]] && [[ ! -d "${TMPDIR}" ]]; then
     mkdir -m 700 -p "${TMPDIR}"
 fi && echo -e "Temp Directory: ${TMPDIR}\n"
 
+
 # Update the PATH variable.
 for p in bin .local/bin .local/opt go/bin .cargo/bin; do
     [[ -d "${HOME}/${p}" ]] && { PATH="${HOME}/${p}":${PATH}; }
@@ -27,12 +28,7 @@ done
 # Setup RCPATH environment.
 [[ -d "${RCPATH}/profile.d" ]] && {
 
-    # Load profile.d scripts.
-    for i in ${RCPATH}/profile.d/*.sh ${RCPATH}/.aliases ${RCPATH}/.env; do
-        [[ -r "${i}" ]] && {
-            [[ "${-#*i}" != "$-" ]] && { . "${i}"; } || { . "${i}" >/dev/null; }
-        }
-    done
+    [[ -e "${RCPATH}/profile.d/Run-Command.sh" ]] && { . "${RCPATH}/profile.d/Run-Command.sh"; }
 
     # Local python virtual environment.
     python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
@@ -50,6 +46,13 @@ done
             Run-Command "${RCPATH}/env_python.sh"
         }
     }; echo
+
+    # Load profile.d scripts.
+    for i in ${RCPATH}/profile.d/*.sh ${RCPATH}/.aliases ${RCPATH}/.env; do
+        [[ -r "${i}" ]] && {
+            [[ "${-#*i}" != "$-" ]] && { . "${i}"; } || { . "${i}" >/dev/null; }
+        }
+    done
 
     # SSH - START BLOCK (logging in via SSH)
     [[ ! -z "${SSH_CONNECTION}" ]] && {
