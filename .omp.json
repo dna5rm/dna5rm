@@ -1,78 +1,70 @@
 {
   "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
-  "version": 2,
-  "final_space": true,
   "blocks": [
     {
       "type": "prompt",
       "alignment": "left",
       "segments": [
         {
-          "type": "session",
-          "style": "diamond",
+          "properties": {
+            "cache_duration": "none"
+          },
           "leading_diamond": "\ue0b6",
           "template": "{{ .UserName }}@{{ .HostName }} ",
-          "background": "#6272a4",
           "foreground": "#f8f8f2",
-          "Text": "",
-          "Duration": 0,
-          "NameLength": 0
+          "background": "#6272a4",
+          "type": "session",
+          "style": "diamond"
         },
         {
-          "type": "path",
-          "style": "powerline",
-          "powerline_symbol": "\ue0b0",
-          "template": " {{ .Path }} ",
           "properties": {
+            "cache_duration": "none",
             "style": "folder"
           },
-          "background": "#bd93f9",
+          "template": " {{ .Path }} ",
           "foreground": "#f8f8f2",
-          "Text": "",
-          "Duration": 0,
-          "NameLength": 0
+          "powerline_symbol": "\ue0b0",
+          "background": "#bd93f9",
+          "type": "path",
+          "style": "powerline"
         },
         {
-          "type": "git",
-          "style": "powerline",
-          "powerline_symbol": "\ue0b0",
-          "template": " \ue725 ({{ .UpstreamIcon }}{{ .HEAD }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }}) ",
           "properties": {
             "branch_icon": "",
+            "cache_duration": "none",
             "fetch_stash_count": true,
             "fetch_status": false,
             "fetch_upstream_icon": true
           },
-          "background": "#ffb86c",
+          "template": " \ue725 ({{ .UpstreamIcon }}{{ .HEAD }}{{ if gt .StashCount 0 }} \ueb4b {{ .StashCount }}{{ end }}) ",
           "foreground": "#f8f8f2",
-          "Text": "",
-          "Duration": 0,
-          "NameLength": 0
-        },
-        {
-          "type": "node",
-          "style": "powerline",
           "powerline_symbol": "\ue0b0",
-          "template": " \ue718 {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} ",
-          "background": "#8be9fd",
-          "foreground": "#f8f8f2",
-          "Text": "",
-          "Duration": 0,
-          "NameLength": 0
+          "background": "#ffb86c",
+          "type": "git",
+          "style": "powerline"
         },
         {
-          "type": "time",
-          "style": "diamond",
-          "trailing_diamond": "\ue0b0",
-          "template": " ♥ {{ .CurrentDate | date .Format }} ",
           "properties": {
+            "cache_duration": "none"
+          },
+          "template": " \ue718 {{ if .PackageManagerIcon }}{{ .PackageManagerIcon }} {{ end }}{{ .Full }} ",
+          "foreground": "#f8f8f2",
+          "powerline_symbol": "\ue0b0",
+          "background": "#8be9fd",
+          "type": "node",
+          "style": "powerline"
+        },
+        {
+          "properties": {
+            "cache_duration": "none",
             "time_format": "15:04"
           },
-          "background": "#ff79c6",
+          "trailing_diamond": "\ue0b0",
+          "template": " ♥ {{ .CurrentDate | date .Format }} ",
           "foreground": "#f8f8f2",
-          "Text": "",
-          "Duration": 0,
-          "NameLength": 0
+          "background": "#ff79c6",
+          "type": "time",
+          "style": "diamond"
         }
       ]
     },
@@ -81,19 +73,21 @@
       "alignment": "left",
       "segments": [
         {
-          "type": "aws",
-          "style": "diamond",
-          "invert_powerline": true,
+          "properties": {
+            "cache_duration": "none"
+          },
           "leading_diamond": "\ue0b2",
           "trailing_diamond": "\ue0b4",
           "template": " \ue7ad {{.Profile}}{{if .Region}}@{{.Region}}{{end}}",
-          "background": "#f1fa8c",
           "foreground": "#282a36",
-          "Text": "",
-          "Duration": 0,
-          "NameLength": 0
+          "background": "#f1fa8c",
+          "type": "aws",
+          "style": "diamond",
+          "invert_powerline": true
         }
       ]
     }
-  ]
+  ],
+  "version": 3,
+  "final_space": true
 }
