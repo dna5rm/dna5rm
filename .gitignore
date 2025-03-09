@@ -60,3 +60,4 @@ _*.sh
 
 # Other Random files
 .uuid
+*.bak
