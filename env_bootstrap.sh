@@ -56,7 +56,7 @@ PROTECTED="$(Unprotect-String ${PROTECTED})"
     commands=(
         "mkdir -p \"${HOME}/Projects\""
         "git clone https://github.com/${PROTECTED}/${PROTECTED}.git \"${HOME}/Projects/${PROTECTED}\""
-        "git clone https://github.com/${PROTECTED}/linux-scripts.git \"${HOME}/Projects/linux_scripts\""
+        "git clone https://github.com/${PROTECTED}/linux-scripts.git \"${HOME}/Projects/linux-scripts\""
         "ln -sfTv \"${HOME}/Projects/${PROTECTED}/.ansible.cfg\" \"${HOME}/.ansible.cfg\""
         "ln -sfTv \"${HOME}/Projects/${PROTECTED}/.ansible-navigator.yaml\" \"${HOME}/.ansible-navigator.yaml\""
         "ln -sfTv \"${HOME}/Projects/${PROTECTED}/.profile\" \"${HOME}/.profile\""
