@@ -55,7 +55,7 @@ done
     done
 
     # SSH - START BLOCK (logging in via SSH)
-    [[ ! -z "${SSH_CONNECTION}" ]] && {
+#   [[ ! -z "${SSH_CONNECTION}" ]] && {
 
         # Generate or display a SSH private key if missing.
         [[ ! -f "${HOME}/.ssh/id_rsa" ]] && {
@@ -100,7 +100,7 @@ done
             }
         }
 
-    }
+#   }
     # SSH - END BLOCK
 
     # Unvault sensitive credentials.
