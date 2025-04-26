@@ -67,3 +67,17 @@ if ($newPaths.Count -gt 0) {
         Write-Warning "Alias(es) '$aliasNames' not set. Command '$command' not found in PATH. To download, visit: $($_.DownloadURL)"
     }
 }
+
+function dockerps {
+    docker ps --format "{{.ID}}|{{.Names}}|{{.CreatedAt}}|{{.Status}}|{{.Ports}}" | 
+    ForEach-Object {
+        $props = $_ -split "\|"
+        [PSCustomObject]@{
+            "CONTAINER ID" = $props[0]
+            "NAMES"        = $props[1]
+            "CREATED"      = $props[2]
+            "STATUS"       = $props[3]
+            "PORTS"        = $props[4]
+        }
+    } | Format-Table -AutoSize
+}
