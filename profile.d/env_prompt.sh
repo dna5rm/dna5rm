@@ -5,7 +5,7 @@
 #
 # Color codes are for 8-bit ANSI: https://en.wikipedia.org/wiki/ANSI_escape_code
 
-[[ -d "${HOME}/.local/bin" ]] && {
+if [[ "$(uname -m)" == "x86_64" ]] && [[ -d "${HOME}/.local/bin" ]]; then
 
     # Oh My Posh - Install
     if [[ "$(uname -m)" == "x86_64" ]] && [[ ! -x "${HOME}/.local/bin/oh-my-posh" ]]; then
@@ -23,7 +23,7 @@
         }
     }
 
-} || {
+else
 
     function set_prompt() {
         # Set the PS1 configuration for the prompt
@@ -185,4 +185,4 @@
 
     PROMPT_COMMAND=set_prompt
 
-}
+fi
