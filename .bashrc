@@ -5,6 +5,13 @@
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 readonly TMOUT=900
 
+# Set USER Var if does not exist
+[[ -z "${USER}" ]] && {
+    USER="$(awk -F'.' 'END { if (NF > 1) print $(NF-1) }' <(ls ~/.*.vault 2> /dev/null))"
+} || {
+    USER="$(whoami)"
+}
+
 # Create a user tmp directory.
 if [[ -z "${TMPDIR}" ]]; then
     # Prune any previously created tmp directories +7 days.
