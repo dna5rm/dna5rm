@@ -23,7 +23,7 @@ if (Test-Path $ohMyPoshPath) {
     }
 
     # Initialize Oh My Posh with the specified theme
-    $themeFile = "$env:POSH_THEMES_PATH\dracula.omp.json"
+    $themeFile = "$ScriptPath\.omp.json"
     if (Test-Path $themeFile) {
         try {
             oh-my-posh init pwsh --config $themeFile | Invoke-Expression
