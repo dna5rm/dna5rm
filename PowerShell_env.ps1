@@ -15,25 +15,25 @@
 # }
 
 # Oh My Posh
-$ohMyPoshPath = "$env:LOCALAPPDATA\Programs\oh-my-posh\bin"
-if (Test-Path $ohMyPoshPath) {
-    # Add Oh My Posh to the PATH if it's not already there
-    if ($env:Path -notlike "*$ohMyPoshPath*") {
-        $env:Path += ";$ohMyPoshPath"
-    }
+# $ohMyPoshPath = "$env:LOCALAPPDATA\Programs\oh-my-posh\bin"
+# if (Test-Path $ohMyPoshPath) {
+#     # Add Oh My Posh to the PATH if it's not already there
+#     if ($env:Path -notlike "*$ohMyPoshPath*") {
+#         $env:Path += ";$ohMyPoshPath"
+#     }
 
-    # Initialize Oh My Posh with the specified theme
-    $themeFile = "$ScriptPath\.omp.json"
-    if (Test-Path $themeFile) {
-        try {
-            oh-my-posh init pwsh --config $themeFile | Invoke-Expression
-        }
-        catch {
-            Write-Warning "Failed to initialize Oh My Posh: $($_.Exception.Message)"
-        }
-    } else {
-        Write-Warning "Oh My Posh theme file not found at: $themeFile"
-    }
-} else {
-    Write-Warning "Oh My Posh binary not found at: $ohMyPoshPath"
-}
+#     # Initialize Oh My Posh with the specified theme
+#     $themeFile = "$ScriptPath\.omp.json"
+#     if (Test-Path $themeFile) {
+#         try {
+#             oh-my-posh init pwsh --config $themeFile | Invoke-Expression
+#         }
+#         catch {
+#             Write-Warning "Failed to initialize Oh My Posh: $($_.Exception.Message)"
+#         }
+#     } else {
+#         Write-Warning "Oh My Posh theme file not found at: $themeFile"
+#     }
+# } else {
+#     Write-Warning "Oh My Posh binary not found at: $ohMyPoshPath"
+# }

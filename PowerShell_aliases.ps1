@@ -68,6 +68,16 @@ if ($newPaths.Count -gt 0) {
     }
 }
 
+function codex {
+    param([string[]]$Args)
+    $argString = $Args -join ' '
+    if ([string]::IsNullOrWhiteSpace($argString)) {
+        wsl -- npx @openai/codex
+    } else {
+        wsl -- npx @openai/codex $argString
+    }
+}
+
 function dockerps {
     docker ps --format "{{.ID}}|{{.Names}}|{{.CreatedAt}}|{{.Status}}|{{.Ports}}" | 
     ForEach-Object {
