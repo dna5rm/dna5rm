@@ -91,3 +91,8 @@ function dockerps {
         }
     } | Format-Table -AutoSize
 }
+
+# Shortcuts to scripts.
+Set-Alias -Name run_aitoolkit -Value $ScriptPath\run_aitoolkit.ps1 -Scope Global
+Set-Alias -Name run_comfyui   -Value $ScriptPath\run_comfyui.ps1 -Scope Global
+Set-Alias -Name run_ollama    -Value $ScriptPath\run_ollama.ps1 -Scope Global
