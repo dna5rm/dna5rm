@@ -76,7 +76,8 @@ done
         # Load ssh key into ssh-agent if ssh_hash is set.
         [[ -n "${ssh_hash[*]}" ]] && {
             eval $(ssh-agent) && {
-                timeout 1s ssh-add -k "${HOME}/.ssh/id_rsa" || alias id_rsa="ssh-add -k \"${HOME}/.ssh/id_rsa\""
+                # timeout 1s ssh-add -k "${HOME}/.ssh/id_rsa" ||
+                alias id_rsa="ssh-add -k \"${HOME}/.ssh/id_rsa\""
             }; echo
 
             ssh-add -l &>/dev/null
