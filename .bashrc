@@ -152,6 +152,10 @@ for i in ${HOME}/.bash_aliases ${HOME}/.env; do
     }
 done
 
+for bcfile in ~/.bash_completion.d/*; do
+  [ -f "$bcfile" ] && source "$bcfile"
+done
+
 # Provide a random quote from author.
 [[ -x "${RCPATH}/quote.sh" ]] && {
     tput setaf 8 2> /dev/null
