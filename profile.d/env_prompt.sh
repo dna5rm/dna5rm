@@ -13,18 +13,17 @@ function set_prompt() {
     local pink="\[\e[38;5;212m\]"          # #ff79c6
     local sep_color="\[\e[38;5;243m\]"     # subtle gray separator
     local dark_bg="\[\e[48;5;236m\]"       # #282a36
-    local red_bg="\[\e[48;5;196m\]"        # #ff5555
     local reset="\[\e[0m\]"
 
     local sep=$(printf "\u276f")            # ❯
     local p=""
 
-    # Leading arrow
-    p="${p}\[${reset}${sep_color}${sep}${reset}\] "
+    # Leading arrow - no trailing space
+    p="${p}\[${reset}${sep_color}${sep}${reset}\]"
 
-    # Segment 1: Exit code (only shown when non-zero)
+    # Segment 1: Exit code (only shown when non-zero) - bold red text, no background
     if [[ ${last_exit} -ne 0 ]]; then
-        p="${p}\[${red_bg}${bold}${baby_blue}\] ${last_exit} "
+        p="${p} ${bold}${red}${last_exit}"
         local prev="${sep_color}"
     else
         local prev=""
@@ -32,9 +31,9 @@ function set_prompt() {
 
     # Segment 2: user@host - bold baby blue on dark bg
     if [[ -n "${prev}" ]]; then
-        p="${p}\[${prev}${dark_bg}${sep}${reset}\]"
+        p="${p} \[${prev}${dark_bg}${sep}${reset}\]"
     fi
-    p="${p}\[${dark_bg}${bold}${baby_blue}\]\u@\h "
+    p="${p} \[${dark_bg}${bold}${baby_blue}\]\u@\h "
 
     # Segment 3: venv (only shown when active) - orange on dark bg
     if [[ -n ${VIRTUAL_ENV} ]]; then
