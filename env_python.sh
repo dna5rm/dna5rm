@@ -1,11 +1,7 @@
 #!/bin/bash
 
-export arch_pkgs="arch_$(uname -o | tr -cd '[a-zA-Z0-9_\-]' | awk '{print tolower($0)}')"
-
-[[ "${arch_pkgs}" == "arch_android" ]] && {
-    export ANDROID_API_LEVEL=$(getprop ro.build.version.sdk)
-    pip install tokenizers --no-binary :all:
-}
+# Python module installer for virtual environment bootstrap.
+# Called by .bashrc -> env_python.sh after venv creation.
 
 pkgs=(
     ansible ansible-lint ansible-navigator asn1crypto
@@ -14,8 +10,8 @@ pkgs=(
     f5-sdk fqdn
     idna
     j2cli Jinja2 jmespath jsnapy junos-eznc jxmlease
-    Jinja2
-    MarkupSafe ncclient netaddr netutils numpy
+    MarkupSafe
+    ncclient netaddr netutils numpy
     openai
     pandas pandevice pan-os-python pan-python paramiko pip-search prompt_toolkit pyasn1 pycparser pylint PyNaCl PyYAML
     scp sentencepiece six speedtest-cli snmpclitools
@@ -29,43 +25,39 @@ django_pkgs=(
     asgiref gunicorn sqlparse timeago
 )
 
-RPi_pkgs=(
+rpi_pkgs=(
     RPi.GPIO enviroplus smbus
 )
 
-arch_android=(
-    cryptography
-)
+# Architecture-specific extras (not in pkgs above)
+arch_gnulinux=(torch)
 
-arch_gnulinux=(
-    ansible-navigator asn1crypto
-    bcrypt bpytop
-    cffi cryptography
-    f5-sdk
-    idna
-    jmespath jsnapy junos-eznc jxmlease
-    MarkupSafe
-    ncclient netaddr
-    pan-python pan-os-python pandevice paramiko pyasn1 pycparser PyNaCl PyYAML
-    scp sentencepiece six
-    torch
-)
-
-function pkg_install ()
-{
-    printf "Installing [%s]\n" $@ && echo
-    pip install $@ 2>> "${HOME}/$(basename ${0%.*}).log"
+pkg_install() {
+    printf "Installing [%s]\n" "$@" && echo
+    pip install "$@" 2>> "${HOME}/$(basename "${0%.*}").log"
 }
+
+# Android: tokenizers needs --no-binary
+if [[ "$(uname -o)" == "Android" ]]; then
+    export ANDROID_API_LEVEL=$(getprop ro.build.version.sdk)
+    pip install tokenizers --no-binary :all:
+fi
 
 pip install --upgrade ansible-vault pip setuptools xmltodict yq && {
 
-    # Python modules - General
-    pkg_install ${pkgs[@]}
-    #pkg_install ${django_pkgs[@]}
+    pkg_install "${pkgs[@]}"
+    # pkg_install "${django_pkgs[@]}"
 
-    # Python modules - Arch Specific
-    [[ ! -z "${!arch_pkgs}" ]] && { echo; pkg_install ${!arch_pkgs}; }
+    # Architecture-specific packages
+    arch_key="arch_$(uname -o | tr -cd '[:alnum:]-_' | awk '{print tolower($0)}')"
+    if [[ -n "${!arch_key}" ]]; then
+        echo
+        pkg_install "${!arch_key}"
+    fi
 
-    # Python modules - Rpi
-    [[ -f "/etc/rpi-issue" ]] && { echo; pkg_install ${RPi_pkgs[@]}; }
+    # Raspberry Pi
+    if [[ -f "/etc/rpi-issue" ]]; then
+        echo
+        pkg_install "${rpi_pkgs[@]}"
+    fi
 }
