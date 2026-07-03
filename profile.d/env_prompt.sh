@@ -1,188 +1,67 @@
 ### Bash Prompt ###
-# Putty Apperance: Settings > Window > Appearance: Font = FiraCode Nerd Font Mono
-# Putty Colors: Settings > Window > Colours: Allow all colour options
-# Putty Terminal: Settings > Connection > Data: Terminal-type string = xterm-256color
-#
-# Color codes are for 8-bit ANSI: https://en.wikipedia.org/wiki/ANSI_escape_code
+# Powerline blocks. Subtle separators. Git text only.
 
-if [[ "$(uname -m)" == "x86_64" ]] && [[ -d "${HOME}/.local/bin" ]]; then
+function set_prompt() {
+    local last_exit=$?
 
-    # Oh My Posh - Install
-    if [[ "$(uname -m)" == "x86_64" ]] && [[ ! -x "${HOME}/.local/bin/oh-my-posh" ]]; then
-        curl -s https://ohmyposh.dev/install.sh | bash -s -- -d ~/.local/bin
-    elif [[ "$(uname -m)" == "aarch64" ]] && [[ ! -x "${HOME}/.local/bin/oh-my-posh" ]]; then
-        wget https://github.com/JanDeDobbeleer/oh-my-posh/releases/download/v14.10.0/posh-linux-arm64 -O ~/.local/bin/oh-my-posh
+    local bold="\[\e[1m\]"
+    local baby_blue="\[\e[38;5;81m\]"      # #8be9fd
+    local green="\[\e[38;5;82m\]"          # #50fa7b
+    local yellow="\[\e[38;5;228m\]"        # #f1fa8c
+    local orange="\[\e[38;5;215m\]"        # #ffb86c
+    local red="\[\e[38;5;196m\]"           # #ff5555
+    local pink="\[\e[38;5;212m\]"          # #ff79c6
+    local sep_color="\[\e[38;5;243m\]"     # subtle gray separator
+    local dark_bg="\[\e[48;5;236m\]"       # #282a36
+    local red_bg="\[\e[48;5;196m\]"        # #ff5555
+    local reset="\[\e[0m\]"
+
+    local sep=$(printf "\u276f")            # ❯
+    local p=""
+
+    # Leading arrow
+    p="${p}\[${reset}${sep_color}${sep}${reset}\] "
+
+    # Segment 1: Exit code (only shown when non-zero)
+    if [[ ${last_exit} -ne 0 ]]; then
+        p="${p}\[${red_bg}${bold}${baby_blue}\] ${last_exit} "
+        local prev="${sep_color}"
+    else
+        local prev=""
     fi
 
-    # Oh My Posh - Run
-    [[ -x "${HOME}/.local/bin/oh-my-posh" ]] && {
-        [[ -e "${RCPATH}/.omp.json" ]] && {
-            eval "$(oh-my-posh --init --shell bash --config "${RCPATH}/.omp.json")"
-        } || {
-            eval "$(oh-my-posh --init --shell bash --config "${HOME}/.cache/oh-my-posh/themes/dracula.omp.json")"
-        }
-    }
+    # Segment 2: user@host - bold baby blue on dark bg
+    if [[ -n "${prev}" ]]; then
+        p="${p}\[${prev}${dark_bg}${sep}${reset}\]"
+    fi
+    p="${p}\[${dark_bg}${bold}${baby_blue}\]\u@\h "
 
-else
+    # Segment 3: venv (only shown when active) - orange on dark bg
+    if [[ -n ${VIRTUAL_ENV} ]]; then
+        p="${p}\[${sep_color}${dark_bg}${sep}${reset}\]\[${dark_bg}${orange}\] ${VIRTUAL_ENV##/*/} "
+    fi
 
-    function set_prompt() {
-        # Set the PS1 configuration for the prompt
-        local reset_color="\[\033[0m\]"
-        local sep=$(printf "\ue0b0")
-        local end="${reset_color}\]\n\$ "
-        local start="\["
+    # Segment 4: working directory - pink on dark bg
+    p="${p}\[${sep_color}${dark_bg}${sep}${reset}\]\[${dark_bg}${pink}\] \w/ "
 
-        # Variables used to configure the prompt
-        if [[ ${UID} -eq 0 ]]; then
-            local user="\[\e[38;5;1m\]\u${reset_color}"
+    # Segment 5: git status - text only, no background
+    if inside_git_repo; then
+        local branch=$(git branch 2>/dev/null | grep "\*" | sed "s/* //")
+        local dirty=$(git diff --quiet 2>/dev/null || echo "1")
+        if [[ -n ${dirty} ]]; then
+            p="${p}\[${reset}${sep_color}${sep}${reset}\] ${yellow}${branch}${reset}"
         else
-            local user="\u${reset_color}"
+            p="${p}\[${reset}${sep_color}${sep}${reset}\] ${green}${branch}${reset}"
         fi
+    else
+        p="${p}\[${reset}${sep_color}${sep}${reset}\]"
+    fi
 
-        # Underline host if connecting through SSH
-        if [[ -n `is_remote` ]]; then
-            local host="\e[4m\h\e[0m${reset_color}"
-        else
-            local host="\h${reset_color}"
-        fi
+    PS1="${p}\n$ "
+}
 
-        local path="\[\e[38;5;0m\]\[\e[48;5;4m\]${sep}\[\e[38;5;7m\]\e[1m \w/ ${reset_color}"
+function inside_git_repo() {
+    git rev-parse --is-inside-work-tree 2>/dev/null >/dev/null
+}
 
-        # Build the prompt one piece at a time
-        if [[ -n ${VIRTUAL_ENV} ]]; then
-            local prompt="${start}(${VIRTUAL_ENV##/*/}) ${user}@${host} ${path}"
-        else
-            local prompt="${start}${user}@${host} ${path}"
-        fi
-
-        # Git repository status
-        local git_status="`make_git_prompt`"
-        if [[ -n ${git_status} ]]; then
-            local prompt="${prompt}${git_status} ${reset_color}"
-        fi
-
-        local prompt="${prompt}${end}"
-
-        PS1="${prompt}"
-    }
-
-    function is_remote() {
-        # See https://unix.stackexchange.com/questions/9605/how-can-i-detect-if-the-shell-is-controlled-from-ssh
-        if [[ -n "${SSH_CLIENT}" ]] || [[ -n "${SSH_TTY}" ]]; then
-            echo "true"
-        else
-            echo ""
-        fi
-    }
-
-    function make_git_prompt() {
-        if inside_git_repo; then
-            # Default values for the appearance of the prompt.
-            local changed=$(printf "\u002b")   # "+"
-            local staged=$(printf "\u2022")    # "•"
-            local untracked=$(printf "\u003f") # "?"
-            local conflict=$(printf "\u0078")  # "x"
-            local ahead=$(printf "\u2191")     # "↑"
-            local behind=$(printf "\u2193")    # "↓"
-            local noremote=$(printf "\u2442")  # "⑂"
-            local _sep="|"
-
-            # Construct the status info (how many files changed, etc)
-            local status=""
-
-            local files_changed=`git diff --numstat | wc -l`
-
-            if [[ ${files_changed} -ne 0 ]]; then
-                if [[ -n ${status} ]]; then
-                    local status="${status}${_sep}"
-                fi
-                local status="${status}${changed}${files_changed}"
-            fi
-
-            local files_staged=`git diff --cached --numstat | wc -l`
-
-            if [[ ${files_staged} -ne 0 ]]; then
-                if [[ -n ${status} ]]; then
-                    local status="${status}${_sep}"
-                fi
-                local status="${status}${staged}${files_staged}"
-            fi
-
-            local files_conflict=`git diff --name-only --diff-filter=U | wc -l`
-
-            if [[ ${files_conflict} -ne 0 ]]; then
-                if [[ -n ${status} ]]; then
-                    local status="${status}${_sep}"
-                fi
-                local status="${status}${conflict}${files_conflict}"
-            fi
-
-            local files_untracked=`git ls-files --others --exclude-standard | wc -l`
-
-            if [[ ${files_untracked} -ne 0 ]]; then
-                if [[ -n ${status} ]]; then
-                    local status="${status}${_sep}"
-                fi
-                local status="${status}${untracked}${files_untracked}"
-            fi
-
-            local remote_status=`git rev-list --left-right --count @{u}...HEAD 2> /dev/null`
-            local remote_behind=$(echo ${remote_status} | cut -f 1 -d " ")
-            local remote_ahead=$(echo ${remote_status} | cut -f 2 -d " ")
-
-            if [[ -z ${remote_status} ]]; then
-                if [[ -n ${status} ]]; then
-                    local status="${status}${_sep}"
-                fi
-                local status="${status}${noremote}"
-            fi
-
-            if [[ ${remote_ahead} -gt 0 ]]; then
-                if [[ -n ${status} ]]; then
-                    local status="${status}${_sep}"
-                fi
-                local status="${status}${ahead}${remote_ahead}"
-            fi
-
-            if [[ ${remote_behind} -gt 0 ]]; then
-                if [[ -n ${status} ]]; then
-                    local status="${status}${_sep}"
-                fi
-                local status="${status}${behind}${remote_behind}"
-            fi
-
-            local branch=`get_git_branch`
-
-            # Append the git info to the PS1
-            local git_prompt="$(printf "\ue0a0")${branch}"
-            if [[ -n ${status} ]]; then
-                local git_prompt="\[\e[38;5;4m\]\[\e[48;5;11m\]${sep}\[\e[38;5;0m\] ${git_prompt}\[\e[38;5;8m\](${status}) \[\e[38;5;11m\]\[\e[48;5;0m\]${sep}"
-            else
-                local git_prompt="\[\e[38;5;4m\]\[\e[48;5;10m\]${sep}\[\e[38;5;0m\] ${git_prompt} \[\e[38;5;10m\]\[\e[48;5;0m\]${sep}"
-            fi
-
-            echo "${git_prompt}"
-        else
-            echo "\[\e[38;5;4m\]\[\e[48;5;0m\]${sep}"
-        fi
-    }
-
-    function get_git_branch() {
-        # Get the name of the current git branch
-        local branch=`git branch | grep "\* *" | sed -n -e "s/\* //p"`
-        if [[ -z `echo ${branch} | grep "\(detached from *\)"` ]]; then
-            echo ${branch}
-        else
-            # In case of detached head, get the commit hash
-            echo ${branch} | sed -n -e "s/(detached from //p" | sed -n -e "s/)//p"
-        fi
-    }
-
-    function inside_git_repo() {
-        # Test if inside a git repository. Will fail is not.
-        git rev-parse --is-inside-work-tree 2> /dev/null > /dev/null
-    }
-
-    PROMPT_COMMAND=set_prompt
-
-fi
+PROMPT_COMMAND=set_prompt
