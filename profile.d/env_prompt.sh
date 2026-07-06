@@ -31,9 +31,9 @@ function set_prompt() {
 
     # Segment 2: user@host - bold baby blue on dark bg
     if [[ -n "${prev}" ]]; then
-        p="${p} \[${prev}${dark_bg}${sep}${reset}\]"
+        p="${p}\[${prev} ${dark_bg}${sep}${reset}\]"
     fi
-    p="${p} \[${dark_bg}${bold}${baby_blue}\]\u@\h "
+    p="${p}\[${dark_bg} ${bold}${baby_blue}\]\u@\h "
 
     # Segment 3: venv (only shown when active) - orange on dark bg
     if [[ -n ${VIRTUAL_ENV} ]]; then
