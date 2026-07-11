@@ -1,5 +1,11 @@
 # Do nothing if non-interactive!
-[[ $- != *i* ]] && { return; }
+[[ $- != *i* ]] && {
+    # Non-interactive bootstrap: make Get-Vault available for Hermes sessions
+    if [[ -f "${HOME}/.hermes/scripts/vault-bootstrap.sh" ]]; then
+        source "${HOME}/.hermes/scripts/vault-bootstrap.sh"
+    fi
+    return
+}
 
 # Set the default shell options.
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
@@ -31,7 +37,12 @@ done
     [[ -e "${RCPATH}/profile.d/Run-Command.sh" ]] && { . "${RCPATH}/profile.d/Run-Command.sh"; }
 
     # Local python virtual environment.
-    python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
+    command -v "termux-info" >/dev/null 2>&1 && {
+        python_ver="$(python3.11 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
+    } || {
+        python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
+    }
+
     [[ -d "${HOME}/.local/venv${python_ver}" ]] && {
         echo "Loading Python virtual environment: ~/.local/venv${python_ver}"
         Run-Command "source \"${HOME}/.local/venv${python_ver}/bin/activate\""
