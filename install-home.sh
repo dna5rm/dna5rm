@@ -19,12 +19,12 @@ function Run-Command() {
 
 function Protect-String() {
     [[ -n "${*}" && -n "${password}" ]] || return 1
-    base64 -w0 <(printf '%s' "${*}" | openssl enc -aes-256-cbc -e -md sha512 -pbkdf2 -iter 100000 -salt -k "${password}")
+    base64 -w0 <(printf '%s' "${*}" | "${OPENSSL:-openssl}" enc -aes-256-cbc -e -md sha512 -pbkdf2 -iter 100000 -salt -k "${password}")
 }
 
 function Unprotect-String() {
     [[ -n "${*}" && -n "${password}" ]] || return 1
-    base64 -d <<< "${*}" | openssl enc -aes-256-cbc -d -md sha512 -pbkdf2 -iter 100000 -salt -k "${password}"
+    base64 -d <<< "${*}" | "${OPENSSL:-openssl}" enc -aes-256-cbc -d -md sha512 -pbkdf2 -iter 100000 -salt -k "${password}"
 }
 
 function Link-If() {
@@ -37,6 +37,11 @@ function is_termux() {
     command -v termux-info >/dev/null 2>&1
 }
 
+function have_openssl() {
+    [[ -n "${PREFIX}" && -x "${PREFIX}/bin/openssl" ]] && return 0
+    command -v openssl >/dev/null 2>&1
+}
+
 # Color is optional. Fresh Termux has no tput until ncurses-utils.
 function tput-safe() {
     command -v tput >/dev/null 2>&1 || return 0
@@ -44,11 +49,16 @@ function tput-safe() {
 }
 
 # Gate needs openssl. Termux does not ship it. tput/ncurses stay optional.
+# bash -c is non-login; PREFIX/bin may be missing from PATH even after pkg.
 function Ensure-Termux-Gate-Tools() {
     is_termux || return 0
-    command -v openssl >/dev/null 2>&1 && return 0
+    PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
+    export PREFIX PATH="${PREFIX}/bin:${PATH}"
+    hash -r 2>/dev/null || true
+    have_openssl && return 0
     echo "Termux: installing openssl for the password gate" >&2
-    Run-Command "pkg install -y openssl"
+    Run-Command "pkg install -y openssl" || true
+    hash -r 2>/dev/null || true
 }
 
 # Termux: pkg list from former env_termux.sh. tur-repo first (python3.11).
@@ -101,10 +111,15 @@ if [[ ! -c /dev/tty ]]; then
     exit 1
 fi
 Ensure-Termux-Gate-Tools
-command -v openssl >/dev/null 2>&1 || {
+have_openssl || {
     echo "openssl required for the password gate. install it yourself, then re-run (this script will not on non-Termux)." >&2
     exit 1
 }
+if [[ -n "${PREFIX}" && -x "${PREFIX}/bin/openssl" ]]; then
+    OPENSSL="${PREFIX}/bin/openssl"
+else
+    OPENSSL="$(command -v openssl)"
+fi
 
 read -s -p "Password: " password </dev/tty && echo
 [[ -n "${password}" ]] || { echo "empty password" >&2; exit 1; }
