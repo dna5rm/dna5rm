@@ -12,8 +12,8 @@ PowerShell approved verbs for function names. Do not split Get-Hash / Get-SshKey
 
 Files (topic names, not load-order prefixes):
 
-  Assert.sh         Assert-ContainsElement, Assert-StrIsDns, Assert-StrIsEmail
-  Convert.sh        j2y y2j x2j
+  Assert.sh         ContainsElement Dns Email Ipv4 Cidr Command File Dir (no pip)
+  Convert.sh        j2y y2j x2j t2j j2t csv2j b64e b64d urlenc urldec
   Crypt.sh          crypt
   Git.sh            git_pull git_push git_diff proj_pull proj_status
   New-Password.sh   New-Password

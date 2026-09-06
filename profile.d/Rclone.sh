@@ -1,86 +1,91 @@
-function rclone-sync() { local script source remote_path remote_share remote_host
+# rclone-sync [--dry-run] path [path…]
+# Env: RCLONE_REMOTE (required), RCLONE_TARGET (optional remote subpath).
+# Dirs: rclone sync. Files: copy up, or pull down if remote is newer.
 
-    # Set script name
+function rclone-sync() {
+    local script dry=() rc=0 source remote_share remote_path remote_type remote_host
+    local local_epoch remote_epoch line
+
     if [[ "${0}" != -*"bash" ]]; then
-        script="$(basename "${0}" 2> /dev/null):${FUNCNAME[0]}"
+        script="$(basename "${0}" 2>/dev/null):${FUNCNAME[0]}"
     else
         script="${FUNCNAME[0]}"
     fi
 
-    # Validate rclone installation
-    if ! command -v rclone &>/dev/null; then
-        echo "${script} - rclone is not installed!"
-        return 1
+    [[ "${1}" == --dry-run ]] && { dry=(--dry-run); shift; }
+
+    if [[ ${#} -eq 0 ]]; then
+        echo "${script} [--dry-run] path [path…]" >&2
+        echo "Set RCLONE_REMOTE (and optional RCLONE_TARGET)." >&2
+        return 2
     fi
 
-    # Check if remote share is configured in environment
+    command -v rclone >/dev/null 2>&1 || {
+        echo "${script} - rclone is not installed" >&2
+        return 1
+    }
+
     if [[ -z "${RCLONE_REMOTE}" ]]; then
-        echo "${script} - RCLONE_REMOTE environment variable not set!"
-        echo "Please set with: export RCLONE_REMOTE=your_remote_name"
+        echo "${script} - RCLONE_REMOTE is not set" >&2
         return 1
     fi
     remote_share="${RCLONE_REMOTE}:${RCLONE_TARGET:-}"
 
-    # Validate remote is configured
-    if ! rclone listremotes | grep -q "^${RCLONE_REMOTE}:$"; then
-        echo "${script} - Remote share '${RCLONE_REMOTE}' not configured in rclone!"
-        echo "Please run 'rclone config' first to set up the remote."
+    rclone listremotes 2>/dev/null | grep -qx "${RCLONE_REMOTE}:" || {
+        echo "${script} - remote '${RCLONE_REMOTE}' is not configured" >&2
         return 1
+    }
+
+    remote_type=$(rclone config show "${RCLONE_REMOTE}" 2>/dev/null \
+        | awk -F' = ' '/^type / { print $2; exit }')
+    if [[ "${remote_type}" == sftp || "${remote_type}" == ssh ]]; then
+        remote_host=$(rclone config show "${RCLONE_REMOTE}" 2>/dev/null \
+            | awk -F' = ' '/^host / { print $2; exit }')
+        if [[ -n "${remote_host}" ]] && ! ping -c 1 -W 2 "${remote_host}" >/dev/null 2>&1; then
+            echo "${script} - cannot reach ${remote_host}" >&2
+            return 1
+        fi
     fi
 
-    # Extract host from rclone config
-    remote_host=$(rclone config show "${RCLONE_REMOTE}" 2>/dev/null | grep 'host' | awk '{print $3}' | tr -d '"')
-    if [[ -z "${remote_host}" ]]; then
-        echo "${script} - Could not determine host from rclone config!"
-        return 1
-    fi
-
-    # Check host connectivity
-    if ! ping -c 1 -W 2 "${remote_host}" &>/dev/null; then
-        echo "${script} - Cannot reach host: ${remote_host}"
-        return 1
-    fi
-
-    # Process each argument (file or directory)
-    for source in "$@"; do
-        # Skip if source doesn't exist locally
+    for source in "${@}"; do
         if [[ ! -e "${source}" ]]; then
-            echo "${script} - Warning: Local path does not exist: ${source}"
+            echo "${script} - missing: ${source}" >&2
+            rc=1
+            continue
+        fi
+        if [[ -d "${source}" ]]; then
+            source=$(cd "${source}" && pwd) || { rc=1; continue; }
+        else
+            source="$(cd "$(dirname "${source}")" && pwd)/$(basename "${source}")"
+        fi
+        remote_path="${remote_share}/$(basename "${source}")"
+
+        if [[ -d "${source}" ]]; then
+            if ! Run-Command rclone sync "${source}" "${remote_path}" \
+                --copy-links --update --use-server-modtime --progress "${dry[@]}"; then
+                echo "${script} - directory sync failed: ${source}" >&2
+                rc=1
+            fi
             continue
         fi
 
-        # Convert to absolute path and clean it
-        source=$(realpath "${source}")
-
-        # Get the base directory name for remote path construction
-        local base_name=$(basename "${source}") && remote_path="${remote_share}/${base_name}"
-
-        if [[ -d "${source}" ]]; then
-            # Handle directory sync
-            if ! Run-Command "rclone sync \"${source}\" \"${remote_path}\" --copy-links --update --use-server-modtime --progress"
-            then
-                echo "${script} - Directory sync failed for: ${source}"
-                continue
+        line=$(rclone lsl "${remote_path}" 2>/dev/null | awk 'NR==1 { print $2 " " $3 }')
+        if [[ -n "${line}" ]]; then
+            remote_epoch=$(date -d "${line}" +%s 2>/dev/null) || remote_epoch=0
+            local_epoch=$(date -r "${source}" +%s 2>/dev/null) || local_epoch=0
+            if (( remote_epoch > local_epoch )); then
+                Run-Command rclone copy "${remote_path}" "$(dirname "${source}")" \
+                    --progress "${dry[@]}" || rc=1
+            else
+                Run-Command rclone copy "${source}" "${remote_share}" \
+                    --progress "${dry[@]}" || rc=1
             fi
         else
-            # Handle file sync
-            # Check if remote file exists and is newer
-            if rclone lsl "${remote_path}" &>/dev/null; then
-                local remote_newer && remote_newer=$(rclone lsl "${remote_path}" | awk '{print $2 " " $3}')
-                local local_newer  && local_newer=$(date -r "${source}" "+%Y-%m-%d %H:%M:%S")
-
-                # Remote file is newer, downloading...
-                if [[ "$(date -d "${remote_newer}" +%s)" > "$(date -d "${local_newer}" +%s)" ]]; then
-                    Run-Command "rclone copy \"${remote_path}\" \"$(dirname "${source}")\" --progress"
-                fi
-            else
-                Run-Command "rclone copy \"${source}\" \"${remote_share}\" --progress"
-            fi
+            Run-Command rclone copy "${source}" "${remote_share}" \
+                --progress "${dry[@]}" || rc=1
         fi
     done
-
-    return 0
+    return "${rc}"
 }
 
-# Export function
 export -f rclone-sync
