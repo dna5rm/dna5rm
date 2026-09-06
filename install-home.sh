@@ -145,7 +145,8 @@ scripts="${HOME}/Projects/linux-scripts"
 Run-Command "mkdir -p \"${HOME}/Projects\""
 
 if [[ -d "${repo}/.git" ]]; then
-    echo "already cloned: ${repo}" >&2
+    echo "already cloned: ${repo} — pulling" >&2
+    Run-Command "git -C \"${repo}\" pull --ff-only"
 else
     Run-Command "git clone \"https://github.com/${PROTECTED}/${PROTECTED}.git\" \"${repo}\""
 fi
