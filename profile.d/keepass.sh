@@ -1,4 +1,4 @@
-# KeePassXC via pykeepass (Ensure-Pip on first use). Never kp.sh, never ~/.kprc.
+# KeePassXC via pykeepass (ensure_pip on first use). Never kp.sh, never ~/.kprc.
 # KP_PASS from vault .env. Optional KP_KDBX / KP_KEYX (keyx optional).
 # Functions always define; missing kdbx fails at invoke (vault exports after this glob).
 
@@ -18,15 +18,15 @@ function _kp_usage() {
 
 function _kp_ready() {
     [[ "${1-}" == -h || "${1-}" == --help ]] && { _kp_usage; return 2; }
-    type Ensure-Pip >/dev/null 2>&1 || {
-        echo "${FUNCNAME[1]}: Ensure-Pip missing (source Python.sh)" >&2
+    type ensure_pip >/dev/null 2>&1 || {
+        echo "${FUNCNAME[1]}: ensure_pip missing (source Python.sh)" >&2
         return 1
     }
-    Ensure-Pip pykeepass --import pykeepass || {
+    ensure_pip pykeepass --import pykeepass || {
         echo "${FUNCNAME[1]}: could not install pykeepass" >&2
         return 1
     }
-    Ensure-Pip pyotp --import pyotp || {
+    ensure_pip pyotp --import pyotp || {
         echo "${FUNCNAME[1]}: could not install pyotp" >&2
         return 1
     }
@@ -188,7 +188,7 @@ function kp_user() {
     [[ -n "${1-}" ]] || { echo "usage: kp_user <entry>" >&2; return 2; }
     _kp_ready "${1}" || { [[ $? -eq 2 ]] && return 0; return 1; }
     v=$(_kp_py UserName "${1}") || return 1
-    Set-Clipboard "${v}"
+    clip_set "${v}"
 }
 
 function kp_pass() {
@@ -196,7 +196,7 @@ function kp_pass() {
     [[ -n "${1-}" ]] || { echo "usage: kp_pass <entry>" >&2; return 2; }
     _kp_ready "${1}" || { [[ $? -eq 2 ]] && return 0; return 1; }
     v=$(_kp_py Password "${1}") || return 1
-    Set-Clipboard "${v}"
+    clip_set "${v}"
 }
 
 function kp_url() {
@@ -204,7 +204,7 @@ function kp_url() {
     [[ -n "${1-}" ]] || { echo "usage: kp_url <entry>" >&2; return 2; }
     _kp_ready "${1}" || { [[ $? -eq 2 ]] && return 0; return 1; }
     v=$(_kp_py URL "${1}") || return 1
-    Set-Clipboard "${v}"
+    clip_set "${v}"
 }
 
 function kp_otp() {
@@ -215,7 +215,7 @@ function kp_otp() {
         echo "kp_otp: no TOTP on '${1}'" >&2
         return 1
     }
-    Set-Clipboard "${v}"
+    clip_set "${v}"
 }
 
 function kp_show() {

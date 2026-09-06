@@ -3,10 +3,10 @@
 function git_pull () {
     command -v git >/dev/null 2>&1 || return 1
     git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
-    Run-Command "git pull"
+    run_command "git pull"
     [[ -n "$(git submodule status 2>/dev/null)" ]] && {
-        Run-Command "git pull --recurse-submodules"
-        Run-Command "git submodule update --init --recursive"
+        run_command "git pull --recurse-submodules"
+        run_command "git submodule update --init --recursive"
     }
 }
 
@@ -16,22 +16,22 @@ function git_push () {
     command -v git >/dev/null 2>&1 || return 1
     git rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
     local msg="${*:-update}" br
-    Run-Command "git status"
+    run_command "git status"
     git status --porcelain | awk '/^\?\?/ {print}' | grep -q . && \
         echo "untracked (not added; no git add --all):" && git status --porcelain | awk '/^\?\?/ {print}'
     git diff --quiet --cached && git diff --quiet && {
         echo "git_push: nothing to commit" >&2
         return 0
     }
-    Run-Command "git commit -am $(printf '%q' "${msg}")"
+    run_command "git commit -am $(printf '%q' "${msg}")"
     br="$(git branch --show-current)"
     [[ -n "${br}" ]] || { echo "git_push: detached HEAD" >&2; return 1; }
-    Run-Command "git push -u origin $(printf '%q' "${br}") --recurse-submodules=on-demand"
+    run_command "git push -u origin $(printf '%q' "${br}") --recurse-submodules=on-demand"
 }
 
 function git_diff () {
     [[ "${0}" != -*"bash" ]] && local script="$(basename "${0}" 2>/dev/null):${FUNCNAME[0]}" || local script="${FUNCNAME[0]}"
-    local test_cmds=( dialog git tput vimdiff Run-Command ) missing="" i
+    local test_cmds=( dialog git tput vimdiff run_command ) missing="" i
     for i in "${test_cmds[@]}"; do command -v "${i}" >/dev/null 2>&1 || missing+="${i} "; done
     [[ -z "${missing}" && -f "${1}" ]] || {
         echo "${script} - requirement failure!"
@@ -45,12 +45,12 @@ function git_diff () {
     [[ -d "${repo_root}" ]] || { echo "${script}: not in a git repo"; return 1; }
     git_commit="$(dialog --stdout --backtitle "${script}" --title " Historical Diff " --menu "$(basename "${repo_root}"): ${file/${repo_root}/}" 20 0 18 --file <(awk -F'|' '{printf "%s \"%s\"\n", $1,$2}' <(git -C "${repo_root}" log --pretty=format:"%h|%s (%cr - %an)" -- "${file}")))"
     [[ -n "${git_commit}" ]] || return 0
-    Run-Command "git -C \"${repo_root}\" diff --shortstat ${git_commit} \"${file}\""
+    run_command "git -C \"${repo_root}\" diff --shortstat ${git_commit} \"${file}\""
     echo
     if [[ "${2,,}" == *vim* ]]; then
-        Run-Command "git -C \"${repo_root}\" difftool --tool=vimdiff --no-prompt ${git_commit} \"${file}\"" 2>/dev/null
+        run_command "git -C \"${repo_root}\" difftool --tool=vimdiff --no-prompt ${git_commit} \"${file}\"" 2>/dev/null
     else
-        Run-Command "git -C \"${repo_root}\" difftool --no-prompt --extcmd='diff -y' ${git_commit} \"${file}\""
+        run_command "git -C \"${repo_root}\" difftool --no-prompt --extcmd='diff -y' ${git_commit} \"${file}\""
     fi
 }
 
@@ -61,10 +61,10 @@ function proj_pull () {
     for repo in "${HOME}/Projects/"*; do
         [[ -d "${repo}/.git" ]] || continue
         echo "Updating $(basename "${repo}")..."
-        Run-Command "git -C \"${repo}\" pull"
+        run_command "git -C \"${repo}\" pull"
         [[ -n "$(git -C "${repo}" submodule status 2>/dev/null)" ]] && {
-            Run-Command "git -C \"${repo}\" pull --recurse-submodules"
-            Run-Command "git -C \"${repo}\" submodule update --init --recursive"
+            run_command "git -C \"${repo}\" pull --recurse-submodules"
+            run_command "git -C \"${repo}\" submodule update --init --recursive"
         }
     done
 }

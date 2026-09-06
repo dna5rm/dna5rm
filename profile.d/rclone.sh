@@ -61,7 +61,7 @@ function rclone-sync() {
         remote_path="${remote_share}/$(basename "${source}")"
 
         if [[ -d "${source}" ]]; then
-            if ! Run-Command rclone sync "${source}" "${remote_path}" \
+            if ! run_command rclone sync "${source}" "${remote_path}" \
                 --copy-links --update --use-server-modtime --progress "${dry[@]}"; then
                 echo "${script} - directory sync failed: ${source}" >&2
                 rc=1
@@ -74,14 +74,14 @@ function rclone-sync() {
             remote_epoch=$(date -d "${line}" +%s 2>/dev/null) || remote_epoch=0
             local_epoch=$(date -r "${source}" +%s 2>/dev/null) || local_epoch=0
             if (( remote_epoch > local_epoch )); then
-                Run-Command rclone copy "${remote_path}" "$(dirname "${source}")" \
+                run_command rclone copy "${remote_path}" "$(dirname "${source}")" \
                     --progress "${dry[@]}" || rc=1
             else
-                Run-Command rclone copy "${source}" "${remote_share}" \
+                run_command rclone copy "${source}" "${remote_share}" \
                     --progress "${dry[@]}" || rc=1
             fi
         else
-            Run-Command rclone copy "${source}" "${remote_share}" \
+            run_command rclone copy "${source}" "${remote_share}" \
                 --progress "${dry[@]}" || rc=1
         fi
     done

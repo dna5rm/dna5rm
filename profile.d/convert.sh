@@ -3,21 +3,21 @@
 function j2y() {
     [[ "${0}" != -*"bash" ]] && local script="$(basename "${0}" 2>/dev/null):${FUNCNAME[0]}" || local script="${FUNCNAME[0]}"
     [[ ${#} -eq 0 ]] && [[ ! -t 0 ]] || { echo "${script} - Convert JSON to YAML from stdin."; return 1; }
-    Ensure-Pip pyyaml --import yaml || return 1
+    ensure_pip pyyaml --import yaml || return 1
     python -c 'import sys,yaml,json; yaml.safe_dump(json.load(sys.stdin), sys.stdout, default_flow_style=False)'
 }
 
 function y2j() {
     [[ "${0}" != -*"bash" ]] && local script="$(basename "${0}" 2>/dev/null):${FUNCNAME[0]}" || local script="${FUNCNAME[0]}"
     [[ ${#} -eq 0 ]] && [[ ! -t 0 ]] || { echo "${script} - Convert YAML to JSON from stdin."; return 1; }
-    Ensure-Pip pyyaml --import yaml || return 1
+    ensure_pip pyyaml --import yaml || return 1
     python -c 'import sys,yaml,json; print(json.dumps(yaml.safe_load(sys.stdin.read()),indent=2))'
 }
 
 function x2j() {
     [[ "${0}" != -*"bash" ]] && local script="$(basename "${0}" 2>/dev/null):${FUNCNAME[0]}" || local script="${FUNCNAME[0]}"
     [[ ${#} -eq 0 ]] && [[ ! -t 0 ]] || { echo "${script} - Convert XML to JSON from stdin."; return 1; }
-    Ensure-Pip xmltodict --import xmltodict || return 1
+    ensure_pip xmltodict --import xmltodict || return 1
     python -c 'import sys,json,xmltodict; print(json.dumps(xmltodict.parse(sys.stdin.read()),indent=2))'
 }
 
@@ -30,7 +30,7 @@ function t2j() {
 function j2t() {
     [[ "${0}" != -*"bash" ]] && local script="$(basename "${0}" 2>/dev/null):${FUNCNAME[0]}" || local script="${FUNCNAME[0]}"
     [[ ${#} -eq 0 ]] && [[ ! -t 0 ]] || { echo "${script} - Convert JSON to TOML from stdin."; return 1; }
-    Ensure-Pip tomli-w --import tomli_w || return 1
+    ensure_pip tomli-w --import tomli_w || return 1
     python -c 'import sys,json,tomli_w; tomli_w.dump(json.load(sys.stdin), sys.stdout)'
 }
 
