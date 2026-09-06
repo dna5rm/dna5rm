@@ -1,6 +1,6 @@
 # Do nothing if non-interactive!
 [[ $- != *i* ]] && {
-    # Non-interactive bootstrap: make Get-Vault available for Hermes sessions
+    # Non-interactive bootstrap: make vault_get available for Hermes sessions
     if [[ -f "${HOME}/.hermes/scripts/vault-bootstrap.sh" ]]; then
         source "${HOME}/.hermes/scripts/vault-bootstrap.sh"
     fi
@@ -63,8 +63,8 @@ if [[ -z "${PYTHON}" ]]; then
 fi
 export PYTHON
 
-# Run-Command lives here only — not in profile.d (glob must stay order-free).
-function Run-Command() {
+# run_command lives here only — not in profile.d (glob must stay order-free).
+function run_command() {
     [[ "${#@}" -ge 1 ]] || { echo "No commands to execute..."; return 1; }
     local command _rc=0 _green _reset
     _green="$(tput setaf 2 2>/dev/null)"
@@ -90,7 +90,7 @@ function Run-Command() {
     done
     return 0
 }
-export -f Run-Command
+export -f run_command
 
 # Setup RCPATH environment.
 # Do not use `[[ dir ]] && { … } || { fail }` — session.sh's last test is often
@@ -104,11 +104,11 @@ if [[ -d "${RCPATH}/profile.d" ]]; then
 
     if [[ -d "${VENV_HOME}" ]]; then
         echo "Loading Python virtual environment: ${VENV_HOME}"
-        Run-Command "source \"${VENV_HOME}/bin/activate\""
+        run_command "source \"${VENV_HOME}/bin/activate\""
     else
         echo "Building Python virtual environment: ${VENV_HOME}"
-        Run-Command "\"${PYTHON}\" -m venv \"${VENV_HOME}\""
-        Run-Command "source \"${VENV_HOME}/bin/activate\""
+        run_command "\"${PYTHON}\" -m venv \"${VENV_HOME}\""
+        run_command "source \"${VENV_HOME}/bin/activate\""
     fi
     echo
 

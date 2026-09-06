@@ -1,6 +1,6 @@
 # Clipboard helpers. Termux, Wayland, X11, else stdout/stdin.
 
-function Set-Clipboard() {
+function clip_set() {
     local data
     if [[ ${#} -gt 0 ]]; then
         data="$*"
@@ -19,7 +19,7 @@ function Set-Clipboard() {
     fi
 }
 
-function Get-Clipboard() {
+function clip_get() {
     if type termux-clipboard-get >/dev/null 2>&1; then
         termux-clipboard-get
     elif type wl-paste >/dev/null 2>&1; then
@@ -32,4 +32,4 @@ function Get-Clipboard() {
     fi
 }
 
-export -f Set-Clipboard Get-Clipboard
+export -f clip_set clip_get

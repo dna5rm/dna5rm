@@ -1,16 +1,16 @@
 # Session init — sourced from .bashrc AFTER profile.d.
-# Needs Get-SshKeyFingerprint, Get-Vault, Ensure-Pip already defined.
+# Needs ssh_fingerprint, vault_get, ensure_pip already defined.
 # Do not source from the profile.d glob.
 
-# Fingerprint + one vault decrypt. Never Run-Command Get-Vault (banner would land in yaml).
-if [[ -z "${ssh_hash[*]}" && -f "${HOME}/.ssh/id_rsa" ]] && type Get-SshKeyFingerprint >/dev/null 2>&1; then
-    export ssh_hash=( $(Get-SshKeyFingerprint) )
+# Fingerprint + one vault decrypt. Never run_command vault_get (banner would land in yaml).
+if [[ -z "${ssh_hash[*]}" && -f "${HOME}/.ssh/id_rsa" ]] && type ssh_fingerprint >/dev/null 2>&1; then
+    export ssh_hash=( $(ssh_fingerprint) )
     [[ -z "${USER}" && -n "${ssh_hash[1]}" ]] && export USER="${ssh_hash[1]%@*}"
 fi
-if [[ -e "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]] && type Get-Vault >/dev/null 2>&1; then
-    type Ensure-Pip >/dev/null 2>&1 && Ensure-Pip yq --cmd yq
+if [[ -e "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]] && type vault_get >/dev/null 2>&1; then
+    type ensure_pip >/dev/null 2>&1 && ensure_pip yq --cmd yq
     _vault_tmp="${TMPDIR:-/tmp}/.vault.yaml"
-    Get-Vault > "${_vault_tmp}" && chmod 600 "${_vault_tmp}"
+    vault_get > "${_vault_tmp}" && chmod 600 "${_vault_tmp}"
     if command -v yq >/dev/null 2>&1 && yq -e '.env | keys | length > 0' "${_vault_tmp}" >/dev/null 2>&1; then
         eval "$(yq -r '.env | to_entries[] | "export " + .key + "=" + (.value|tostring|@sh)' "${_vault_tmp}")"
     else
@@ -29,8 +29,8 @@ if [[ -e "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]] && type G
     fi
     rm -f "${_vault_tmp}"
     unset _vault_tmp _tac _user
-elif [[ -n "${ssh_hash[*]}" ]] && type Initialize-Vault >/dev/null 2>&1; then
-    echo -e "\n[${HOSTNAME}] Run the \"$(tput setaf 2 2>/dev/null)Initialize-Vault$(tput sgr0 2>/dev/null)\" shell function to create a vault.\n"
+elif [[ -n "${ssh_hash[*]}" ]] && type vault_init >/dev/null 2>&1; then
+    echo -e "\n[${HOSTNAME}] Run the \"$(tput setaf 2 2>/dev/null)vault_init$(tput sgr0 2>/dev/null)\" shell function to create a vault.\n"
 fi
 
 # ssh-agent only on SSH, reuse if already live.

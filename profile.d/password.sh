@@ -1,14 +1,14 @@
-# New-Password [length] [-a]
+# new_password [length] [-a]
 # Default length 16. Mix: a-zA-Z0-9!@#$%^&*()
 # -a : alnum only (Wi-Fi / TACACS that reject punctuation)
 
-function New-Password() {
+function new_password() {
     local alnum=0 length=16 arg
     for arg in "${@}"; do
         case "${arg}" in
             -a|--alnum) alnum=1 ;;
             -h|--help)
-                echo "New-Password [length] [-a]  # default 16; -a = alnum only"
+                echo "new_password [length] [-a]  # default 16; -a = alnum only"
                 return 0
                 ;;
             *)
@@ -30,4 +30,4 @@ function New-Password() {
     echo
 }
 
-export -f New-Password
+export -f new_password

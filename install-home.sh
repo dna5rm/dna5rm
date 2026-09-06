@@ -7,7 +7,7 @@
 
 PROTECTED="U2FsdGVkX1+Lv1gKnydwejkzn+wch0ddqqhpaj2SdTU="
 
-function Run-Command() {
+function run_command() {
     [[ "${#@}" -ge 1 ]] || { echo "No commands to execute..."; return 1; }
     local command _rc=0
     for command in "${@}"; do
@@ -34,7 +34,7 @@ function Link-If() {
     [[ -e "${src}" ]] || { echo "skip (missing): ${src}" >&2; return 1; }
     # -sfn: portable (busybox + GNU). Do not use -T; fresh Termux ln is busybox until coreutils.
     hash -r 2>/dev/null || true
-    Run-Command "ln -sfn \"${src}\" \"${dest}\"" || return 1
+    run_command "ln -sfn \"${src}\" \"${dest}\"" || return 1
     [[ -L "${dest}" ]] || { echo "link failed: ${dest}" >&2; return 1; }
 }
 
@@ -61,7 +61,7 @@ function Ensure-Termux-Gate-Tools() {
     hash -r 2>/dev/null || true
     have_openssl && return 0
     echo "Termux: installing openssl-tool for the password gate" >&2
-    Run-Command "pkg install -y openssl openssl-tool" || true
+    run_command "pkg install -y openssl openssl-tool" || true
     hash -r 2>/dev/null || true
 }
 
@@ -87,11 +87,11 @@ function Install-Termux-Pkgs() {
         termux-api tidy tmux toilet wget whois
     )
     echo "Termux: installing packages..." >&2
-    Run-Command "pkg install -y tur-repo"
-    Run-Command "pkg update -y"
-    Run-Command "pkg install -y ${pkgs[*]}"
+    run_command "pkg install -y tur-repo"
+    run_command "pkg update -y"
+    run_command "pkg install -y ${pkgs[*]}"
     echo "Termux: python3.11 from TUR" >&2
-    Run-Command "pkg install -y python3.11"
+    run_command "pkg install -y python3.11"
 }
 
 function Pin-Termux-Python() {
@@ -155,20 +155,20 @@ if is_termux; then
     Pin-Termux-Python
 fi
 
-Run-Command "mkdir -p \"${HOME}/Projects\""
+run_command "mkdir -p \"${HOME}/Projects\""
 
 if [[ -d "${repo}/.git" ]]; then
     echo "already cloned: ${repo} — pulling" >&2
-    Run-Command "git -C \"${repo}\" pull --ff-only" || exit 1
+    run_command "git -C \"${repo}\" pull --ff-only" || exit 1
 else
-    Run-Command "git clone \"https://github.com/${PROTECTED}/${PROTECTED}.git\" \"${repo}\"" || exit 1
+    run_command "git clone \"https://github.com/${PROTECTED}/${PROTECTED}.git\" \"${repo}\"" || exit 1
 fi
 [[ -f "${repo}/.bashrc" ]] || { echo "clone missing ${repo}/.bashrc" >&2; exit 1; }
 
 if [[ -d "${scripts}/.git" ]]; then
     echo "already cloned: ${scripts}" >&2
 else
-    Run-Command "git clone \"https://github.com/${PROTECTED}/linux-scripts.git\" \"${scripts}\"" || exit 1
+    run_command "git clone \"https://github.com/${PROTECTED}/linux-scripts.git\" \"${scripts}\"" || exit 1
 fi
 
 Link-If "${repo}/.profile" "${HOME}/.profile" || exit 1
@@ -181,8 +181,8 @@ Link-If "${repo}/.tmux.conf" "${HOME}/.tmux.conf" || true
 Link-If "${repo}/.vimrc" "${HOME}/.vimrc" || exit 1
 [[ -d "${scripts}" ]] && { Link-If "${scripts}" "${HOME}/bin" || exit 1; }
 
-Run-Command "mkdir -p \"${HOME}/.ssh\" \"${HOME}/.gnupg\" \"${HOME}/.local/bin\" \"${HOME}/.local/lib\" \"${HOME}/.local/share\" \"${HOME}/.local/src\" \"${HOME}/.bash_completion.d\""
-[[ -f "${repo}/.ssh/config" ]] && Run-Command "install -m 644 -D \"${repo}/.ssh/config\" \"${HOME}/.ssh/config\""
+run_command "mkdir -p \"${HOME}/.ssh\" \"${HOME}/.gnupg\" \"${HOME}/.local/bin\" \"${HOME}/.local/lib\" \"${HOME}/.local/share\" \"${HOME}/.local/src\" \"${HOME}/.bash_completion.d\""
+[[ -f "${repo}/.ssh/config" ]] && run_command "install -m 644 -D \"${repo}/.ssh/config\" \"${HOME}/.ssh/config\""
 Link-If "${repo}/.gnupg/gpg.conf" "${HOME}/.gnupg/gpg.conf" || true
 
 for _need in .profile .bashrc .vimrc; do

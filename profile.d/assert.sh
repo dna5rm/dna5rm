@@ -1,6 +1,6 @@
 # Small predicates for other scripts. No pip. Login is a no-op besides define.
 
-function Assert-ContainsElement() {
+function assert_in() {
     [[ $# -ge 2 ]] || {
         echo "${FUNCNAME[0]}: usage: ${FUNCNAME[0]} element \${array[@]}" >&2
         return 2
@@ -13,7 +13,7 @@ function Assert-ContainsElement() {
     return 1
 }
 
-function Assert-StrIsDns() {
+function assert_dns() {
     [[ $# -eq 1 && -n "${1}" ]] || {
         echo "${FUNCNAME[0]}: Missing Domain Name" >&2
         return 2
@@ -22,7 +22,7 @@ function Assert-StrIsDns() {
     [[ "${1}" =~ ${re} ]]
 }
 
-function Assert-StrIsEmail() {
+function assert_email() {
     [[ $# -eq 1 && -n "${1}" ]] || {
         echo "${FUNCNAME[0]}: Missing arguments" >&2
         return 2
@@ -31,7 +31,7 @@ function Assert-StrIsEmail() {
     [[ "${1}" =~ ${re} ]]
 }
 
-function Assert-StrIsIpv4() {
+function assert_ipv4() {
     [[ $# -eq 1 && -n "${1}" ]] || {
         echo "${FUNCNAME[0]}: Missing IPv4 address" >&2
         return 2
@@ -47,7 +47,7 @@ function Assert-StrIsIpv4() {
     return 0
 }
 
-function Assert-StrIsCidr() {
+function assert_cidr() {
     [[ $# -eq 1 && -n "${1}" ]] || {
         echo "${FUNCNAME[0]}: Missing CIDR" >&2
         return 2
@@ -56,10 +56,10 @@ function Assert-StrIsCidr() {
     [[ "${1}" == */* && "${ip}" != "${1}" ]] || return 1
     [[ "${pfx}" =~ ^[0-9]{1,2}$ ]] || return 1
     (( 10#${pfx} <= 32 )) || return 1
-    Assert-StrIsIpv4 "${ip}"
+    assert_ipv4 "${ip}"
 }
 
-function Assert-Command() {
+function assert_cmd() {
     [[ $# -ge 1 ]] || {
         echo "${FUNCNAME[0]}: usage: ${FUNCNAME[0]} cmd [cmd…]" >&2
         return 2
@@ -71,7 +71,7 @@ function Assert-Command() {
     return 0
 }
 
-function Assert-File() {
+function assert_file() {
     [[ $# -eq 1 && -n "${1}" ]] || {
         echo "${FUNCNAME[0]}: Missing path" >&2
         return 2
@@ -79,7 +79,7 @@ function Assert-File() {
     [[ -f "${1}" ]]
 }
 
-function Assert-Dir() {
+function assert_dir() {
     [[ $# -eq 1 && -n "${1}" ]] || {
         echo "${FUNCNAME[0]}: Missing path" >&2
         return 2
@@ -87,5 +87,5 @@ function Assert-Dir() {
     [[ -d "${1}" ]]
 }
 
-export -f Assert-ContainsElement Assert-StrIsDns Assert-StrIsEmail \
-    Assert-StrIsIpv4 Assert-StrIsCidr Assert-Command Assert-File Assert-Dir
+export -f assert_in assert_dns assert_email \
+    assert_ipv4 assert_cidr assert_cmd assert_file assert_dir
