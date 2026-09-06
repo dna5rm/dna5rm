@@ -8,7 +8,16 @@
 }
 
 # Set the default shell options.
-export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
+# Termux often has no readlink -f (needs coreutils). Absolute symlink is enough.
+_rcsrc="${BASH_SOURCE[0]:-${HOME}/.bashrc}"
+if [[ -L "${_rcsrc}" ]]; then
+    _rctgt="$(readlink "${_rcsrc}")"
+    [[ "${_rctgt}" != /* ]] && _rctgt="$(cd "$(dirname "${_rcsrc}")" && pwd)/${_rctgt}"
+    export RCPATH="$(cd "$(dirname "${_rctgt}")" && pwd)"
+else
+    export RCPATH="$(cd "$(dirname "${_rcsrc}")" && pwd)"
+fi
+unset _rcsrc _rctgt
 readonly TMOUT=900
 shopt -s histappend 2>/dev/null
 HISTCONTROL="${HISTCONTROL:-ignoreboth}"
