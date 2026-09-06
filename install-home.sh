@@ -147,26 +147,28 @@ PROTECTED="$(Unprotect-String "${PROTECTED}")" || exit 1
 repo="${HOME}/Projects/${PROTECTED}"
 scripts="${HOME}/Projects/linux-scripts"
 
-Run-Command "mkdir -p \"${HOME}/Projects\""
-
-if [[ -d "${repo}/.git" ]]; then
-    echo "already cloned: ${repo} — pulling" >&2
-    Run-Command "git -C \"${repo}\" pull --ff-only"
-else
-    Run-Command "git clone \"https://github.com/${PROTECTED}/${PROTECTED}.git\" \"${repo}\""
-fi
-
-if [[ -d "${scripts}/.git" ]]; then
-    echo "already cloned: ${scripts}" >&2
-else
-    Run-Command "git clone \"https://github.com/${PROTECTED}/linux-scripts.git\" \"${scripts}\""
-fi
-
-# Termux: pkgs (coreutils) before ln. Linking first used busybox ln -T and skipped the profile.
+# Termux: pkgs (git, coreutils, ca-certificates) before clone or ln.
+# Clone-first on a wiped phone: no git → empty repo → skip (missing) .bashrc.
 if is_termux; then
     Install-Termux-Pkgs
     hash -r 2>/dev/null || true
     Pin-Termux-Python
+fi
+
+Run-Command "mkdir -p \"${HOME}/Projects\""
+
+if [[ -d "${repo}/.git" ]]; then
+    echo "already cloned: ${repo} — pulling" >&2
+    Run-Command "git -C \"${repo}\" pull --ff-only" || exit 1
+else
+    Run-Command "git clone \"https://github.com/${PROTECTED}/${PROTECTED}.git\" \"${repo}\"" || exit 1
+fi
+[[ -f "${repo}/.bashrc" ]] || { echo "clone missing ${repo}/.bashrc" >&2; exit 1; }
+
+if [[ -d "${scripts}/.git" ]]; then
+    echo "already cloned: ${scripts}" >&2
+else
+    Run-Command "git clone \"https://github.com/${PROTECTED}/linux-scripts.git\" \"${scripts}\"" || exit 1
 fi
 
 Link-If "${repo}/.profile" "${HOME}/.profile" || exit 1
