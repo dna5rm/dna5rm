@@ -16,7 +16,6 @@ Files (topic names, not load-order prefixes):
   Convert.sh        j2y y2j x2j
   Crypt.sh          crypt
   Git.sh            git_pull git_push git_diff proj_pull proj_status
-  Google-Cloud.sh   gcloud PATH/completion if SDK present
   New-Password.sh   New-Password
   Prompt.sh         set_prompt
   Python.sh         Ensure-Pip pyhttpd pip-update
