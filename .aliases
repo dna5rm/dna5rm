@@ -22,10 +22,7 @@ type lsd >/dev/null 2>&1 && {
     alias ls='ls --color=auto' 2>/dev/null
 }
 
-# Other verification aliases.
+# Do not alias cat/nmap — keep real tools. bat/figlet if present as themselves.
 type nano >/dev/null 2>&1 && { alias pico=nano; }
-type nmap >/dev/null 2>&1 && { alias nmap='nmap -Pn -oG -'; }
-type figlet >/dev/null 2>&1 && { alias toilet=figlet; }
 type ollama.exe >/dev/null 2>&1 && { alias ollama=ollama.exe; }
-# Bat is installed
-type bat >/dev/null 2>&1 && { alias cat=bat; }
+type bat >/dev/null 2>&1 && { alias bat='bat --paging=never'; }

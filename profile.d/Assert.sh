@@ -40,8 +40,8 @@ function Assert-ContainsElement () {
 
 function Assert-StrIsDns() {
     [ ${#} -eq 0 ] && { printf "%s: Missing Domain Name\n" "${FUNCNAME[0]}" >&2; return 2; }
-    python3 -c "from fqdn import FQDN; import sys; sys.exit(0 if FQDN('${1}').is_valid else 1)" 2>/dev/null
-    return ${?}
+    Ensure-Pip fqdn --import fqdn || return 1
+    python -c "from fqdn import FQDN; import sys; sys.exit(0 if FQDN(sys.argv[1]).is_valid else 1)" -- "${1}"
 }
 
 function Assert-StrIsEmail() {

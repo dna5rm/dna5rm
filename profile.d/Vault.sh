@@ -1,3 +1,41 @@
+# Vault stack: key fingerprint → ssh_hash → Get-Hash → ansible-vault.
+# Functions only. Session decrypt is in .bashrc after the profile.d glob.
+
+if command -v argon2 >/dev/null 2>&1; then
+    function Get-Hash() {
+        if [ -n "${ssh_hash[*]}" ]; then
+            argon2 "${ssh_hash[1]:-$(printf "%-8s" ${USER})}" -i -l 128 -r -v 13 <<< "${@:-$RANDOM}"
+        else
+            awk '{print $1}' <(sha512sum <<< "${@:-$RANDOM}")
+        fi
+    }
+else
+    function Get-Hash() {
+        awk '{print $1}' <(sha512sum <<< "${@:-$RANDOM}")
+    }
+fi
+export -f Get-Hash
+
+function Get-SshKeyFingerprint() {
+    local Command_List=( Assert-StrIsEmail Run-Command ssh-keygen )
+    local Command_Check
+    for Command_Check in ${Command_List[@]}; do
+        type ${Command_Check} >/dev/null 2>&1 || return 1
+    done
+    local fp=( $(awk '{sub(/.*:/, ""); print $1,$2}' <(ssh-keygen -lf "${HOME}/.ssh/id_rsa" 2>/dev/null)) )
+    [[ -n "${fp[*]}" ]] || return 1
+    Assert-StrIsEmail "${fp[1]}" || {
+        local email_address=""
+        Run-Command "ssh-keygen -lvf \"${HOME}/.ssh/id_rsa\" 2>/dev/null"
+        echo; read -e -i "${USER:-$(whoami)}@" -p "Email Address: " email_address
+        Assert-StrIsEmail "${email_address}" && {
+            Run-Command "ssh-keygen -c -C \"${email_address}\" -f \"${HOME}/.ssh/id_rsa\""
+        }
+    }
+    awk '{sub(/.*:/, ""); print $1,$2}' <(ssh-keygen -lf "${HOME}/.ssh/id_rsa")
+}
+export -f Get-SshKeyFingerprint
+
 function Edit-Vault() {
     # Check if commands exist.
     [[ "${0}" != -*"bash" ]] && {
@@ -6,7 +44,7 @@ function Edit-Vault() {
         local script="${FUNCNAME[0]}"
     }
 
-    local test_cmds=( ansible-vault Get-Hash )
+    local test_cmds=( Get-Hash )
     local test_result=()
     mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
 
@@ -17,7 +55,7 @@ function Edit-Vault() {
         done; return 1
     } || {
 
-        # Extract vaulted data.
+        Ensure-Pip ansible-core --cmd ansible-vault || return 1
         [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
             ansible-vault edit "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
         } || {
@@ -35,7 +73,7 @@ function Get-Vault() {
         local script="${FUNCNAME[0]}"
     }
 
-    local test_cmds=( ansible-vault Get-Hash )
+    local test_cmds=( Get-Hash )
     local test_result=()
     mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
 
@@ -46,6 +84,7 @@ function Get-Vault() {
         done; return 1
     } || {
 
+        Ensure-Pip ansible-core --cmd ansible-vault || return 1
         [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
             ansible-vault view "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
         } || {
@@ -64,7 +103,7 @@ function Initialize-Vault() {
         local script="${FUNCNAME[0]}"
     }
 
-    local test_cmds=( ansible-vault Get-Hash )
+    local test_cmds=( Get-Hash )
     local test_result=()
     mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
 
@@ -75,6 +114,7 @@ function Initialize-Vault() {
         done; return 1
     } || {
 
+        Ensure-Pip ansible-core --cmd ansible-vault || return 1
         [[ (! -f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
             ansible-vault create "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
         } || {
@@ -93,7 +133,7 @@ function Protect-Vault() {
         local script="${FUNCNAME[0]}"
     }
 
-    local test_cmds=( ansible-vault Get-Hash )
+    local test_cmds=( Get-Hash )
     local test_result=()
     mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
 
@@ -104,7 +144,7 @@ function Protect-Vault() {
         done; return 1
     } || {
 
-        # Encrypt unvaulted data.
+        Ensure-Pip ansible-core --cmd ansible-vault || return 1
         [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
             ansible-vault encrypt "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
         } || {
@@ -123,7 +163,7 @@ function Unprotect-Vault() {
         local script="${FUNCNAME[0]}"
     }
 
-    local test_cmds=( ansible-vault Get-Hash )
+    local test_cmds=( Get-Hash )
     local test_result=()
     mapfile -t test_result< <(for i in "${test_cmds[@]}"; do command -v "${i}" &> /dev/null || echo "${i}"; done)
 
@@ -134,7 +174,7 @@ function Unprotect-Vault() {
         done; return 1
     } || {
 
-        # Decrypt vaulted data.
+        Ensure-Pip ansible-core --cmd ansible-vault || return 1
         [[ (-f "${HOME}/.${USER:-$(whoami)}.vault") && (-n "${ssh_hash[*]}") ]] && {
             ansible-vault decrypt "${HOME}/.${USER:-$(whoami)}.vault" --vault-password-file <(Get-Hash "${ssh_hash[0]}")
         } || {
@@ -182,7 +222,7 @@ function vssh () {
 export -f Get-Vault
 export -f vssh
 
-# Load Alises
+# Aliases only (no Get-Vault call). Session decrypt lives in .bashrc after the glob.
 type Get-Vault >/dev/null 2>&1 && {
     alias vault=Get-Vault
     alias vault_walk="yq -rc '[paths|map((\".\"+strings)//\"[]\")|join(\"\")]|unique[]' <(vault)"
