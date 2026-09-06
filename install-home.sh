@@ -37,6 +37,20 @@ function is_termux() {
     command -v termux-info >/dev/null 2>&1
 }
 
+# Color is optional. Fresh Termux has no tput until ncurses-utils.
+function tput-safe() {
+    command -v tput >/dev/null 2>&1 || return 0
+    tput "$@"
+}
+
+# Gate needs openssl. Termux does not ship it. tput/ncurses stay optional.
+function Ensure-Termux-Gate-Tools() {
+    is_termux || return 0
+    command -v openssl >/dev/null 2>&1 && return 0
+    echo "Termux: installing openssl for the password gate" >&2
+    Run-Command "pkg install -y openssl"
+}
+
 # Termux: pkg list from former env_termux.sh. tur-repo first (python3.11).
 function Install-Termux-Pkgs() {
     is_termux || return 0
@@ -75,19 +89,20 @@ function Pin-Termux-Python() {
     fi
 }
 
-tput setaf 3 >&2
+tput-safe setaf 3 >&2
 printf '\n>>> Linux Environment Bootstrap <<<\n\n' >&2
-tput sgr0 >&2
+tput-safe sgr0 >&2
 
-# Gate first. No clones, links, or pkg installs until this passes.
+# Gate first. No clones, links, or full pkg installs until this passes.
 # Pipe-to-bash has no TTY — refuse so read cannot eat the script or skip the bump.
 if [[ ! -c /dev/tty ]]; then
     echo "need a TTY for the password prompt. do not pipe into bash." >&2
     echo "  bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/dna5rm/dna5rm/master/install-home.sh)\"" >&2
     exit 1
 fi
+Ensure-Termux-Gate-Tools
 command -v openssl >/dev/null 2>&1 || {
-    echo "openssl required for the password gate. install it yourself, then re-run (this script will not)." >&2
+    echo "openssl required for the password gate. install it yourself, then re-run (this script will not on non-Termux)." >&2
     exit 1
 }
 
@@ -97,9 +112,9 @@ read -s -p "Password: " password </dev/tty && echo
 PROTECTED="$(Unprotect-String "${PROTECTED}")" || exit 1
 
 [[ "${PROTECTED}" == "${password}" ]] || {
-    tput setaf 8
+    tput-safe setaf 8
     echo -e "\nPROTECT=\"$(Protect-String "${password}")\"\n"
-    tput sgr0
+    tput-safe sgr0
     exit 1
 }
 
