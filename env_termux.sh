@@ -23,8 +23,11 @@ pkgs+=( screen steghide )
 pkgs+=( termux-api tidy tmux toilet )
 pkgs+=( wget whois )
 
-# Functions
-. profile.d/Run-Command.sh
+# Standalone bootstrap (not login). Run-Command lives in .bashrc; stub if missing.
+if ! type Run-Command >/dev/null 2>&1; then
+    Run-Command() { printf '>>> %s\n' "$*" >&2; eval "$@"; }
+    export -f Run-Command
+fi
 
 pipe_check() {
   input=$(cat)

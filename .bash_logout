@@ -10,5 +10,5 @@ awk 'NR==1 && /ANSIBLE_VAULT/ {exit 0} NR>1 {exit 1}' "${HOME}/.${USER:-$(whoami
 
 # Output installed pip packages.
 if [[ -d "${HOME}/Projects" ]] && [[ ! -z "${python_ver}" ]]
- then python -m pip freeze > "${HOME}/.local/venv${python_ver}/requirements.txt"
+ then python -m pip freeze > "${VENV_HOME:-${HOME}/.local/venv${python_ver}}/requirements.txt"
 fi

@@ -10,6 +10,10 @@
 # Set the default shell options.
 export RCPATH="$(dirname $(readlink -f "${HOME}/.bashrc"))"
 readonly TMOUT=900
+shopt -s histappend 2>/dev/null
+HISTCONTROL="${HISTCONTROL:-ignoreboth}"
+HISTSIZE="${HISTSIZE:-5000}"
+HISTFILESIZE="${HISTFILESIZE:-20000}"
 
 # Create a user tmp directory.
 if [[ -z "${TMPDIR}" ]]; then
@@ -31,122 +35,76 @@ for p in bin .local/bin .local/opt go/bin .cargo/bin; do
     [[ -d "${HOME}/${p}" ]] && { PATH="${HOME}/${p}":${PATH}; }
 done
 
+# dna5rm/.env (in git, comments only) then $HOME/.env (host overlay, not in git).
+[[ -r "${RCPATH}/.env" ]] && . "${RCPATH}/.env"
+[[ -r "${HOME}/.env" ]] && . "${HOME}/.env"
+
+# Interpreter for venv + python_ver. ~/.env may set PYTHON=python3.11
+# Do not use an alias here — aliases skip non-interactive and -m venv.
+if [[ -z "${PYTHON}" ]]; then
+    if command -v termux-info >/dev/null 2>&1 && command -v python3.11 >/dev/null 2>&1; then
+        PYTHON=python3.11
+    else
+        PYTHON=python3
+    fi
+fi
+export PYTHON
+
+# Run-Command lives here only — not in profile.d (glob must stay order-free).
+function Run-Command() {
+    [[ "${#@}" -ge 1 ]] || { echo "No commands to execute..."; return 1; }
+    local command _rc=0 _green _reset
+    _green="$(tput setaf 2 2>/dev/null)"
+    _reset="$(tput sgr0 2>/dev/null)"
+    for command in "${@}"; do
+        printf '%s>>> %s%s\n' "${_reset}" "${_green}${command}${_reset}" "" >&2
+        case "${command}" in
+            source\ *|.\ *)
+                eval "${command}"
+                _rc=$?
+                ;;
+            *)
+                if command -v ct >/dev/null 2>&1 && [[ -t 1 ]]; then
+                    eval "${command}" | ct
+                    _rc=${PIPESTATUS[0]}
+                else
+                    eval "${command}"
+                    _rc=$?
+                fi
+                ;;
+        esac
+        [[ ${_rc} -eq 0 ]] || return ${_rc}
+    done
+    return 0
+}
+export -f Run-Command
+
 # Setup RCPATH environment.
 [[ -d "${RCPATH}/profile.d" ]] && {
 
-    [[ -e "${RCPATH}/profile.d/Run-Command.sh" ]] && { . "${RCPATH}/profile.d/Run-Command.sh"; }
+    python_ver="$("${PYTHON}" -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
+    # VENV_NAME from $HOME/.env (e.g. venv_test). Default: versioned venv${python_ver}
+    VENV_HOME="${HOME}/.local/${VENV_NAME:-venv${python_ver}}"
+    export python_ver VENV_HOME
 
-    # Local python virtual environment.
-    command -v "termux-info" >/dev/null 2>&1 && {
-        python_ver="$(python3.11 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
+    [[ -d "${VENV_HOME}" ]] && {
+        echo "Loading Python virtual environment: ${VENV_HOME}"
+        Run-Command "source \"${VENV_HOME}/bin/activate\""
     } || {
-        python_ver="$(python3 -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
-    }
-
-    [[ -d "${HOME}/.local/venv${python_ver}" ]] && {
-        echo "Loading Python virtual environment: ~/.local/venv${python_ver}"
-        Run-Command "source \"${HOME}/.local/venv${python_ver}/bin/activate\""
-    } || {
-        echo "Building Python virtual environment: ~/.local/venv${python_ver}"
-        Run-Command "mkdir -p \"${HOME}/.local/venv${python_ver}\""
-        Run-Command "python3 -m venv \"${HOME}/.local/venv${python_ver}\""
-        Run-Command "source \"${HOME}/.local/venv${python_ver}/bin/activate\""
-
-        # Install base python modules.
-        [[ -x "${RCPATH}/env_python.sh" ]] && {
-            Run-Command "${RCPATH}/env_python.sh"
-        }
+        echo "Building Python virtual environment: ${VENV_HOME}"
+        Run-Command "\"${PYTHON}\" -m venv \"${VENV_HOME}\""
+        Run-Command "source \"${VENV_HOME}/bin/activate\""
     }; echo
 
-    # Load profile.d scripts.
-    for i in ${RCPATH}/profile.d/*.sh ${RCPATH}/.aliases ${RCPATH}/.env; do
+    # profile.d: functions only. Order must not matter.
+    for i in ${RCPATH}/profile.d/*.sh ${RCPATH}/.aliases; do
         [[ -r "${i}" ]] && {
             [[ "${-#*i}" != "$-" ]] && { . "${i}"; } || { . "${i}" >/dev/null; }
         }
     done
 
-    # SSH - START BLOCK (logging in via SSH)
-#   [[ ! -z "${SSH_CONNECTION}" ]] && {
-
-        # Generate or display a SSH private key if missing.
-        [[ ! -f "${HOME}/.ssh/id_rsa" ]] && {
-            Run-Command "ssh-keygen -t rsa -b 4096 -N \"\" -C \"${USER:-$(whoami)}@$(domainname -y 2> /dev/null || echo "(none)")\" -f \"${HOME}/.ssh/id_rsa\""
-        } || {
-            Run-Command "ssh-keygen -lvf \"${HOME}/.ssh/id_rsa\""
-        }; echo
-
-        # Load ssh key fingerprint as ssh_hash.
-        type Get-SshKeyFingerprint >/dev/null 2>&1 && {
-            export ssh_hash=( `Get-SshKeyFingerprint` )
-            [[ -z "${USER}" ]] && {
-                # Set $USER if not already set.
-                export USER="${ssh_hash[1]%@*}"
-            }
-        }
-
-        # Load ssh key into ssh-agent if ssh_hash is set.
-        [[ -n "${ssh_hash[*]}" ]] && {
-            eval $(ssh-agent) && {
-                # timeout 1s ssh-add -k "${HOME}/.ssh/id_rsa" ||
-                alias id_rsa="ssh-add -k \"${HOME}/.ssh/id_rsa\""
-            }; echo
-
-            ssh-add -l &>/dev/null
-            # Freshen ~/Projects folder if stale. 604800
-            [[ ( "${?}" == 0 ) ]] && {
-                [[ ( -d "${HOME}/Projects" && $(( $(date +%s) - $(stat -c %Y "${HOME}/Projects") )) -gt "604800" ) ]] && {
-                    # Update all in ~/Projects with git.
-                    for repo in $(find "${HOME}/Projects/"* -maxdepth 0 -type d -not -path "*/venv*"); do
-                        [[ -d "${repo}/.git" ]] && {
-                            Run-Command "git -C \"${repo}\" pull"
-                            [[ -n "$(git -C "${repo}" submodule status)" ]] && {
-                                Run-Command "git -C \"${repo}\" pull --recurse-submodules"
-                            }
-                        }
-                    done; touch "${HOME}/Projects"
-                } || {
-                    # Update RCPATH with git.
-                    Run-Command "git -C \"${RCPATH}\" checkout master"
-                    Run-Command "git -C \"${RCPATH}\" pull -f"
-                }; echo
-            }
-        }
-
-#   }
-    # SSH - END BLOCK
-
-    # Unvault sensitive credentials.
-    if type Get-Vault >/dev/null 2>&1; then
-    if [[ -e "${HOME}/.${USER:-$(whoami)}.vault" && -n "${ssh_hash[*]}" ]]; then
-        # Load .env within the vault into the user environment.
-        yq -r '.env | to_entries[]' <(vault) &> /dev/null && {
-            eval "$(yq -r '.env | to_entries[] | "export " + .key + "=" + (.value|tostring|@sh)' 2> /dev/null <(vault))"
-        } || {
-            tput setaf 8 2> /dev/null
-            echo -e "### No vaulted environmental variables found. ###"
-            # awk '//{print "#",$0}' <(yq -y -n '{"env":{"ENV_VAR":"Example Variable"}}')
-            tput sgr0 2> /dev/null; echo
-        }
-
-    # Create a .cloginrc in $TMPDIR for rancid.
-	[[ ! -z "${TACACS}" ]] && {
-        sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 600 "${TMPDIR}/.cloginrc"
-        ## Generated from \${TACACS} variable :: $(date) ##
-        add user        *       ${USER:-$(whoami)}
-        add password    *       $(printf "%q %q" "${TACACS}" "${TACACS}")
-        add method      *       ssh telnet
-	EOF
-    } || {
-        sed -e 's/^[ \t]*//' <<-EOF > "${TMPDIR}/.cloginrc" && chmod 600 "${TMPDIR}/.cloginrc"
-        ## Generated from ~/.${USER:-$(whoami)}.vault :: $(date) ##
-        add user        *       ${USER:-$(whoami)}
-        add password    *       $(printf "%q\t%q" $(yq -r '.["'''${USER:-$(whoami)}'''"]|[.tacacs,.tacacs]|@tsv' <(Get-Vault)))
-        add method      *       ssh telnet
-	EOF
-    }
-    elif [[ -n "${ssh_hash[*]}" ]]; then
-        echo -e "\n[${HOSTNAME}] Run the \"$(tput setaf 2 2> /dev/null)Initialize-Vault$(tput sgr0 2> /dev/null)\" shell function to create a vault.\n"
-    fi; fi
+    # Vault decrypt + ssh-agent (needs functions from profile.d).
+    [[ -r "${RCPATH}/session.sh" ]] && . "${RCPATH}/session.sh"
 
 } || {
     echo -e "\n[${HOSTNAME}] System unconfigured or profile.d not loaded!\n"
@@ -156,16 +114,14 @@ done
 # Run fun stuff. #
 ##################
 
-# Load user environment.
-for i in ${HOME}/.bash_aliases ${HOME}/.env; do
-    [[ -r "${i}" ]] && {
-        [[ "${-#*i}" != "$-" ]] && { . "${i}"; } || { . "${i}" >/dev/null; }
-    }
-done
+# Extra aliases only. ${HOME}/.env already sourced (early) so PYTHON/PATH apply to venv.
+[[ -r "${HOME}/.bash_aliases" ]] && . "${HOME}/.bash_aliases"
 
-for bcfile in ~/.bash_completion.d/*; do
-  [ -f "$bcfile" ] && source "$bcfile"
-done
+if [[ -d "${HOME}/.bash_completion.d" ]]; then
+    for bcfile in "${HOME}/.bash_completion.d/"*; do
+        [[ -f "${bcfile}" ]] && . "${bcfile}"
+    done
+fi
 
 # Provide a random quote from author.
 [[ -x "${RCPATH}/quote.sh" ]] && {
