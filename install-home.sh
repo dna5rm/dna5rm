@@ -65,7 +65,7 @@ function Install-Termux-Pkgs() {
     is_termux || return 0
     local pkgs=(
         ncurses-utils tur-repo
-        ca-certificates clang curl ffmpeg git libffi make python3.11
+        ca-certificates clang coreutils curl ffmpeg git libffi make python3.11
         openssh openssl openssl-tool pkg-config ripgrep rust
         argon2 asciidoctor
         bat bc binutils bmon build-essential
@@ -120,7 +120,9 @@ else
     OPENSSL="$(command -v openssl)"
 fi
 
-read -s -p "Password: " password </dev/tty && echo
+printf '\nBootstrap password (input hidden):\nPassword: ' >/dev/tty
+read -s password </dev/tty
+printf '\n' >/dev/tty
 [[ -n "${password}" ]] || { echo "empty password" >&2; exit 1; }
 
 PROTECTED="$(Unprotect-String "${PROTECTED}")" || exit 1
