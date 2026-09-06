@@ -33,6 +33,55 @@ function Link-If() {
     Run-Command "ln -sfTv \"${src}\" \"${dest}\""
 }
 
+function is_termux() {
+    command -v termux-info >/dev/null 2>&1
+}
+
+# Termux: pkg list from former env_termux.sh. tur-repo first (python3.11).
+function Install-Termux-Pkgs() {
+    is_termux || return 0
+    local pkgs=(
+        ncurses-utils tur-repo
+        ca-certificates clang curl ffmpeg git libffi make python3.11
+        openssh openssl pkg-config ripgrep rust
+        argon2 asciidoctor
+        bat bc binutils bmon build-essential
+        clamav dialog dnsutils
+        exiftool expect fdupes file
+        glow gnupg golang graphviz
+        htop imagemagick ipcalc jq
+        libandroid-spawn libmaxminddb-tools libxml2 libxslt libzmq lsd
+        mandoc moreutils neofetch neovim nmap nodejs-lts
+        ossp-uuid pandoc pdfgrep proot-distro pup
+        rsync screen steghide
+        termux-api tidy tmux toilet wget whois
+    )
+    echo "Termux: installing packages..." >&2
+    Run-Command "pkg install -y tur-repo"
+    Run-Command "pkg install -y ${pkgs[*]}"
+}
+
+function Pin-Termux-Python() {
+    is_termux || return 0
+    command -v python3.11 >/dev/null 2>&1 || {
+        echo "python3.11 missing after pkg install" >&2
+        return 1
+    }
+    if [[ -f "${HOME}/.env" ]] && grep -qE '^[[:space:]]*(export[[:space:]]+)?PYTHON=' "${HOME}/.env"; then
+        echo "\$HOME/.env already pins PYTHON" >&2
+    else
+        printf '\nexport PYTHON=python3.11\n' >> "${HOME}/.env"
+        echo "wrote export PYTHON=python3.11 to \$HOME/.env (host overlay, not the repo)" >&2
+    fi
+}
+
+if is_termux; then
+    command -v pkg >/dev/null 2>&1 || { echo "termux pkg missing" >&2; exit 1; }
+    command -v openssl >/dev/null 2>&1 || Run-Command "pkg install -y openssl"
+    command -v git >/dev/null 2>&1 || Run-Command "pkg install -y git"
+    command -v curl >/dev/null 2>&1 || Run-Command "pkg install -y curl"
+fi
+
 tput setaf 3 >&2
 printf '\n>>> Linux Environment Bootstrap <<<\n\n' >&2
 tput sgr0 >&2
@@ -79,4 +128,10 @@ Run-Command "mkdir -p \"${HOME}/.ssh\" \"${HOME}/.gnupg\" \"${HOME}/.local/bin\"
 [[ -f "${repo}/.ssh/config" ]] && Run-Command "install -m 644 -D \"${repo}/.ssh/config\" \"${HOME}/.ssh/config\""
 Link-If "${repo}/.gnupg/gpg.conf" "${HOME}/.gnupg/gpg.conf"
 
-echo "done. next login: venv + profile.d + session.sh. optional: \$HOME/.env for PYTHON / VENV_NAME" >&2
+if is_termux; then
+    Install-Termux-Pkgs
+    Pin-Termux-Python
+    echo "Termux: next login uses python3.11 venv (bashrc + \$HOME/.env PYTHON=)." >&2
+fi
+
+echo "done. next login: venv + profile.d + session.sh." >&2
