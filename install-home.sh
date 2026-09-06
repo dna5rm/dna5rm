@@ -30,7 +30,8 @@ function Unprotect-String() {
 function Link-If() {
     local src="${1}" dest="${2}"
     [[ -e "${src}" ]] || { echo "skip (missing): ${src}" >&2; return 0; }
-    Run-Command "ln -sfTv \"${src}\" \"${dest}\""
+    # -sfn: portable (busybox + GNU). Do not use -T; fresh Termux ln is busybox until coreutils.
+    Run-Command "ln -sfn \"${src}\" \"${dest}\""
 }
 
 function is_termux() {
@@ -157,6 +158,12 @@ else
     Run-Command "git clone \"https://github.com/${PROTECTED}/linux-scripts.git\" \"${scripts}\""
 fi
 
+# Termux: pkgs (coreutils) before ln. Linking first used busybox ln -T and skipped the profile.
+if is_termux; then
+    Install-Termux-Pkgs
+    Pin-Termux-Python
+fi
+
 Link-If "${repo}/.profile" "${HOME}/.profile"
 Link-If "${repo}/.bash_logout" "${HOME}/.bash_logout"
 Link-If "${repo}/.bashrc" "${HOME}/.bashrc"
@@ -172,8 +179,6 @@ Run-Command "mkdir -p \"${HOME}/.ssh\" \"${HOME}/.gnupg\" \"${HOME}/.local/bin\"
 Link-If "${repo}/.gnupg/gpg.conf" "${HOME}/.gnupg/gpg.conf"
 
 if is_termux; then
-    Install-Termux-Pkgs
-    Pin-Termux-Python
     # Login bash prefers ~/.bash_profile over ~/.profile. Ensure one exists.
     if [[ ! -e "${HOME}/.bash_profile" ]]; then
         printf '%s\n' '[ -f "$HOME/.profile" ] && . "$HOME/.profile"' > "${HOME}/.bash_profile"
