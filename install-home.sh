@@ -48,16 +48,15 @@ function tput-safe() {
     tput "$@"
 }
 
-# Gate needs openssl. Termux does not ship it. tput/ncurses stay optional.
-# bash -c is non-login; PREFIX/bin may be missing from PATH even after pkg.
+# Gate needs the openssl CLI. Termux splits it: openssl = libs, openssl-tool = bin/openssl.
 function Ensure-Termux-Gate-Tools() {
     is_termux || return 0
     PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
     export PREFIX PATH="${PREFIX}/bin:${PATH}"
     hash -r 2>/dev/null || true
     have_openssl && return 0
-    echo "Termux: installing openssl for the password gate" >&2
-    Run-Command "pkg install -y openssl" || true
+    echo "Termux: installing openssl-tool for the password gate" >&2
+    Run-Command "pkg install -y openssl openssl-tool" || true
     hash -r 2>/dev/null || true
 }
 
@@ -67,7 +66,7 @@ function Install-Termux-Pkgs() {
     local pkgs=(
         ncurses-utils tur-repo
         ca-certificates clang curl ffmpeg git libffi make python3.11
-        openssh openssl pkg-config ripgrep rust
+        openssh openssl openssl-tool pkg-config ripgrep rust
         argon2 asciidoctor
         bat bc binutils bmon build-essential
         clamav dialog dnsutils
