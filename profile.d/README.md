@@ -17,7 +17,7 @@ Files (topic names, not load-order prefixes):
   Convert.sh        j2y y2j x2j t2j j2t csv2j b64e b64d urlenc urldec
   Crypt.sh          crypt
   Git.sh            git_pull git_push git_diff proj_pull proj_status
-  Keepass.sh        kp_user kp_pass kp_url kp_show kp_find (KP_PASS from vault)
+  Keepass.sh        kp_user kp_pass kp_url kp_otp kp_show kp_find (KP_PASS from vault)
   New-Password.sh   New-Password
   Prompt.sh         set_prompt
   Python.sh         Ensure-Pip pyhttpd pip-update
