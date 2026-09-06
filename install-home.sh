@@ -60,12 +60,14 @@ function Ensure-Termux-Gate-Tools() {
     hash -r 2>/dev/null || true
 }
 
-# Termux: pkg list from former env_termux.sh. tur-repo first (python3.11).
+# Termux: tur-repo first, refresh index, then bulk pkgs, then python3.11.
+# python3.11 is TUR-only. Installing it in the same apt transaction as tur-repo
+# (or before pkg update) uses a stale Packages file and 404s 3.11.16.
 function Install-Termux-Pkgs() {
     is_termux || return 0
     local pkgs=(
-        ncurses-utils tur-repo
-        ca-certificates clang coreutils curl ffmpeg git libffi make python3.11
+        ncurses-utils
+        ca-certificates clang coreutils curl ffmpeg git libffi make
         openssh openssl openssl-tool pkg-config ripgrep rust
         argon2 asciidoctor
         bat bc binutils bmon build-essential
@@ -81,7 +83,10 @@ function Install-Termux-Pkgs() {
     )
     echo "Termux: installing packages..." >&2
     Run-Command "pkg install -y tur-repo"
+    Run-Command "pkg update -y"
     Run-Command "pkg install -y ${pkgs[*]}"
+    echo "Termux: python3.11 from TUR" >&2
+    Run-Command "pkg install -y python3.11"
 }
 
 function Pin-Termux-Python() {
