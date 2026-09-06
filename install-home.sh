@@ -1,7 +1,9 @@
 #!/bin/bash
 ## Initialize home from a dna5rm clone. Password is a speed bump against accidental runs.
-## Do not pipe into bash (read -s needs a TTY). Prefer jsDelivr — GitHub raw CDN is often stale.
-##   bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/dna5rm/dna5rm@master/install-home.sh)"
+## Do not pipe into bash (read -s needs a TTY).
+## jsDelivr @master caches ~7d — it still served ln -sfTv after GitHub had ln -sfn.
+## Use GitHub raw, or jsDelivr pinned to a commit SHA, not @master.
+##   bash -c "$(curl -fsSL https://raw.githubusercontent.com/dna5rm/dna5rm/master/install-home.sh)"
 
 PROTECTED="U2FsdGVkX1+Lv1gKnydwejkzn+wch0ddqqhpaj2SdTU="
 
@@ -29,9 +31,11 @@ function Unprotect-String() {
 
 function Link-If() {
     local src="${1}" dest="${2}"
-    [[ -e "${src}" ]] || { echo "skip (missing): ${src}" >&2; return 0; }
+    [[ -e "${src}" ]] || { echo "skip (missing): ${src}" >&2; return 1; }
     # -sfn: portable (busybox + GNU). Do not use -T; fresh Termux ln is busybox until coreutils.
-    Run-Command "ln -sfn \"${src}\" \"${dest}\""
+    hash -r 2>/dev/null || true
+    Run-Command "ln -sfn \"${src}\" \"${dest}\"" || return 1
+    [[ -L "${dest}" ]] || { echo "link failed: ${dest}" >&2; return 1; }
 }
 
 function is_termux() {
@@ -161,22 +165,28 @@ fi
 # Termux: pkgs (coreutils) before ln. Linking first used busybox ln -T and skipped the profile.
 if is_termux; then
     Install-Termux-Pkgs
+    hash -r 2>/dev/null || true
     Pin-Termux-Python
 fi
 
-Link-If "${repo}/.profile" "${HOME}/.profile"
-Link-If "${repo}/.bash_logout" "${HOME}/.bash_logout"
-Link-If "${repo}/.bashrc" "${HOME}/.bashrc"
-Link-If "${repo}/.dialogrc" "${HOME}/.dialogrc"
-Link-If "${repo}/.screenrc" "${HOME}/.screenrc"
-Link-If "${repo}/.sqliterc" "${HOME}/.sqliterc"
-Link-If "${repo}/.tmux.conf" "${HOME}/.tmux.conf"
-Link-If "${repo}/.vimrc" "${HOME}/.vimrc"
-[[ -d "${scripts}" ]] && Link-If "${scripts}" "${HOME}/bin"
+Link-If "${repo}/.profile" "${HOME}/.profile" || exit 1
+Link-If "${repo}/.bash_logout" "${HOME}/.bash_logout" || exit 1
+Link-If "${repo}/.bashrc" "${HOME}/.bashrc" || exit 1
+Link-If "${repo}/.dialogrc" "${HOME}/.dialogrc" || true
+Link-If "${repo}/.screenrc" "${HOME}/.screenrc" || true
+Link-If "${repo}/.sqliterc" "${HOME}/.sqliterc" || true
+Link-If "${repo}/.tmux.conf" "${HOME}/.tmux.conf" || true
+Link-If "${repo}/.vimrc" "${HOME}/.vimrc" || exit 1
+[[ -d "${scripts}" ]] && { Link-If "${scripts}" "${HOME}/bin" || exit 1; }
 
 Run-Command "mkdir -p \"${HOME}/.ssh\" \"${HOME}/.gnupg\" \"${HOME}/.local/bin\" \"${HOME}/.local/lib\" \"${HOME}/.local/share\" \"${HOME}/.local/src\" \"${HOME}/.bash_completion.d\""
 [[ -f "${repo}/.ssh/config" ]] && Run-Command "install -m 644 -D \"${repo}/.ssh/config\" \"${HOME}/.ssh/config\""
-Link-If "${repo}/.gnupg/gpg.conf" "${HOME}/.gnupg/gpg.conf"
+Link-If "${repo}/.gnupg/gpg.conf" "${HOME}/.gnupg/gpg.conf" || true
+
+for _need in .profile .bashrc .vimrc; do
+    [[ -L "${HOME}/${_need}" ]] || { echo "profile not linked: ${HOME}/${_need}" >&2; exit 1; }
+done
+unset _need
 
 if is_termux; then
     # Login bash prefers ~/.bash_profile over ~/.profile. Ensure one exists.
