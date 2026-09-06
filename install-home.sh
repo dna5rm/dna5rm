@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Initialize home from a dna5rm clone. Password is a speed bump against accidental runs.
-## Do not pipe into bash (read -s needs a TTY). One-liner:
-##   bash -c "$(curl -fsSL https://raw.githubusercontent.com/dna5rm/dna5rm/master/install-home.sh)"
+## Do not pipe into bash (read -s needs a TTY). Prefer jsDelivr — GitHub raw CDN is often stale.
+##   bash -c "$(curl -fsSL https://cdn.jsdelivr.net/gh/dna5rm/dna5rm@master/install-home.sh)"
 
 PROTECTED="U2FsdGVkX1+Lv1gKnydwejkzn+wch0ddqqhpaj2SdTU="
 
@@ -168,6 +168,11 @@ Link-If "${repo}/.gnupg/gpg.conf" "${HOME}/.gnupg/gpg.conf"
 if is_termux; then
     Install-Termux-Pkgs
     Pin-Termux-Python
+    # Login bash prefers ~/.bash_profile over ~/.profile. Ensure one exists.
+    if [[ ! -e "${HOME}/.bash_profile" ]]; then
+        printf '%s\n' '[ -f "$HOME/.profile" ] && . "$HOME/.profile"' > "${HOME}/.bash_profile"
+        echo "wrote ~/.bash_profile -> .profile" >&2
+    fi
     echo "Termux: next login uses python3.11 venv (bashrc + \$HOME/.env PYTHON=)." >&2
 fi
 
