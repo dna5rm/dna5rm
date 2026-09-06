@@ -111,7 +111,7 @@ tput-safe sgr0 >&2
 # Pipe-to-bash has no TTY — refuse so read cannot eat the script or skip the bump.
 if [[ ! -c /dev/tty ]]; then
     echo "need a TTY for the password prompt. do not pipe into bash." >&2
-    echo "  bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/dna5rm/dna5rm/master/install-home.sh)\"" >&2
+    echo "  bash -c \"\$(curl -fsSL https://cdn.jsdelivr.net/gh/dna5rm/dna5rm@master/install-home.sh)\"" >&2
     exit 1
 fi
 Ensure-Termux-Gate-Tools
