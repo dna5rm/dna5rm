@@ -1,5 +1,7 @@
 #!/bin/bash
 ## Initialize home from a dna5rm clone. Password is a speed bump against accidental runs.
+## Do not pipe into bash (read -s needs a TTY). One-liner:
+##   bash -c "$(curl -fsSL https://raw.githubusercontent.com/dna5rm/dna5rm/master/install-home.sh)"
 
 PROTECTED="U2FsdGVkX1+Lv1gKnydwejkzn+wch0ddqqhpaj2SdTU="
 
