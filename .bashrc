@@ -7,6 +7,10 @@
     return
 }
 
+# Termux login: /etc/bash.bashrc and ~/.profile both source this. Once is enough.
+[[ -n "${_DNA5RM_BASHRC}" ]] && return
+_DNA5RM_BASHRC=1
+
 # Set the default shell options.
 # Termux often has no readlink -f (needs coreutils). Absolute symlink is enough.
 _rcsrc="${BASH_SOURCE[0]:-${HOME}/.bashrc}"
@@ -18,7 +22,7 @@ else
     export RCPATH="$(cd "$(dirname "${_rcsrc}")" && pwd)"
 fi
 unset _rcsrc _rctgt
-readonly TMOUT=900
+TMOUT=900
 shopt -s histappend 2>/dev/null
 HISTCONTROL="${HISTCONTROL:-ignoreboth}"
 HISTSIZE="${HISTSIZE:-5000}"
@@ -89,21 +93,24 @@ function Run-Command() {
 export -f Run-Command
 
 # Setup RCPATH environment.
-[[ -d "${RCPATH}/profile.d" ]] && {
+# Do not use `[[ dir ]] && { … } || { fail }` — session.sh's last test is often
+# false on Termux (no SSH_CONNECTION) and that tripped the fail branch.
+if [[ -d "${RCPATH}/profile.d" ]]; then
 
     python_ver="$("${PYTHON}" -c 'from sys import version_info as ver; print(ver.major,ver.minor,ver.micro, sep="_")')"
     # VENV_NAME from $HOME/.env (e.g. venv_test). Default: versioned venv${python_ver}
     VENV_HOME="${HOME}/.local/${VENV_NAME:-venv${python_ver}}"
     export python_ver VENV_HOME
 
-    [[ -d "${VENV_HOME}" ]] && {
+    if [[ -d "${VENV_HOME}" ]]; then
         echo "Loading Python virtual environment: ${VENV_HOME}"
         Run-Command "source \"${VENV_HOME}/bin/activate\""
-    } || {
+    else
         echo "Building Python virtual environment: ${VENV_HOME}"
         Run-Command "\"${PYTHON}\" -m venv \"${VENV_HOME}\""
         Run-Command "source \"${VENV_HOME}/bin/activate\""
-    }; echo
+    fi
+    echo
 
     # profile.d: functions only. Order must not matter.
     for i in ${RCPATH}/profile.d/*.sh ${RCPATH}/.aliases; do
@@ -115,9 +122,9 @@ export -f Run-Command
     # Vault decrypt + ssh-agent (needs functions from profile.d).
     [[ -r "${RCPATH}/session.sh" ]] && . "${RCPATH}/session.sh"
 
-} || {
+else
     echo -e "\n[${HOSTNAME}] System unconfigured or profile.d not loaded!\n"
-}
+fi
 
 ##################
 # Run fun stuff. #
