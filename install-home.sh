@@ -75,18 +75,24 @@ function Pin-Termux-Python() {
     fi
 }
 
-if is_termux; then
-    command -v pkg >/dev/null 2>&1 || { echo "termux pkg missing" >&2; exit 1; }
-    command -v openssl >/dev/null 2>&1 || Run-Command "pkg install -y openssl"
-    command -v git >/dev/null 2>&1 || Run-Command "pkg install -y git"
-    command -v curl >/dev/null 2>&1 || Run-Command "pkg install -y curl"
-fi
-
 tput setaf 3 >&2
 printf '\n>>> Linux Environment Bootstrap <<<\n\n' >&2
 tput sgr0 >&2
 
-read -s -p "Password: " password && echo
+# Gate first. No clones, links, or pkg installs until this passes.
+# Pipe-to-bash has no TTY — refuse so read cannot eat the script or skip the bump.
+if [[ ! -c /dev/tty ]]; then
+    echo "need a TTY for the password prompt. do not pipe into bash." >&2
+    echo "  bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/dna5rm/dna5rm/master/install-home.sh)\"" >&2
+    exit 1
+fi
+command -v openssl >/dev/null 2>&1 || {
+    echo "openssl required for the password gate. install it yourself, then re-run (this script will not)." >&2
+    exit 1
+}
+
+read -s -p "Password: " password </dev/tty && echo
+[[ -n "${password}" ]] || { echo "empty password" >&2; exit 1; }
 
 PROTECTED="$(Unprotect-String "${PROTECTED}")" || exit 1
 
