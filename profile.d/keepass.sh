@@ -1,5 +1,7 @@
 # KeePassXC via pykeepass (ensure_pip on first use). Never kp.sh, never ~/.kprc.
 # KP_PASS from vault .env. Optional KP_KDBX / KP_KEYX (keyx optional).
+# Default basename is not whoami: Termux USER is u0_aNNN. Same idea as vault
+# ${USER:-…} plus ssh_hash[1] (key comment local-part, e.g. deaves@…).
 # Functions always define; missing kdbx fails at invoke (vault exports after this glob).
 
 function _kp_usage() {
@@ -34,15 +36,24 @@ function _kp_ready() {
         echo "${FUNCNAME[1]}: KP_PASS is unset (vault .env)" >&2
         return 1
     }
-    export KP_KDBX="${KP_KDBX:-${HOME}/Documents/$(whoami).kdbx}"
+    local kp_user="${KP_USER:-}"
+    if [[ -z "${kp_user}" ]]; then
+        kp_user="${USER:-}"
+        # Termux app UID; ignore even when USER is set (vault ${USER:-whoami} is not enough).
+        if [[ -z "${kp_user}" || "${kp_user}" == u0_a* ]]; then
+            kp_user="${ssh_hash[1]%%@*}"
+        fi
+        [[ -n "${kp_user}" && "${kp_user}" != u0_a* ]] || kp_user="$(whoami)"
+    fi
+    export KP_KDBX="${KP_KDBX:-${HOME}/Documents/${kp_user}.kdbx}"
     [[ -e "${KP_KDBX}" ]] || {
         echo "${FUNCNAME[1]}: kdbx missing: ${KP_KDBX}" >&2
         return 1
     }
     if [[ -n "${KP_KEYX:-}" && -e "${KP_KEYX}" ]]; then
         export KP_KEYX
-    elif [[ -e "${HOME}/Documents/$(whoami).keyx" ]]; then
-        export KP_KEYX="${HOME}/Documents/$(whoami).keyx"
+    elif [[ -e "${HOME}/Documents/${kp_user}.keyx" ]]; then
+        export KP_KEYX="${HOME}/Documents/${kp_user}.keyx"
     else
         unset KP_KEYX
     fi
