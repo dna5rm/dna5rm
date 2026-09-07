@@ -136,13 +136,16 @@ function Pin-Termux-Python() {
 # Host overlay, not the repo. ansible-core pulls cryptography; pip 50.x
 # ships an abi3 wheel that dlopens on Termux 3.11 then fails
 # (PyExc_Warning). 46.0.7 builds a real android_30 arm64 wheel.
+# pykeepass pulls argon2-cffi-bindings; PyPI linux_aarch64 abi3 wheels
+# are glibc and segfault on Termux (import argon2 -> 139). Pin 21.2.0
+# and no-binary so pip builds against bionic.
 function Pin-Termux-Pip-Cryptography() {
     is_termux || return 0
     local pipdir="${HOME}/.pip"
     local constraints="${pipdir}/constraints.txt"
     local conf="${pipdir}/pip.conf"
     mkdir -p "${pipdir}"
-    if [[ -f "${constraints}" ]] && grep -qE '^[[:space:]]*cryptography==46\.0\.7[[:space:]]*$' "${constraints}"; then
+    if [[ -f "${constraints}" ]] && grep -qE '^[[:space:]]*cryptography==46\\.0\\.7[[:space:]]*$' "${constraints}"; then
         echo "\$HOME/.pip already pins cryptography==46.0.7" >&2
     else
         if [[ -f "${constraints}" ]] && grep -qE '^[[:space:]]*cryptography==' "${constraints}"; then
@@ -157,6 +160,20 @@ function Pin-Termux-Pip-Cryptography() {
         fi
         echo "wrote cryptography==46.0.7 to \$HOME/.pip/constraints.txt" >&2
     fi
+    if [[ -f "${constraints}" ]] && grep -qE '^[[:space:]]*argon2-cffi-bindings==21\\.2\\.0[[:space:]]*$' "${constraints}"; then
+        echo "\$HOME/.pip already pins argon2-cffi-bindings==21.2.0" >&2
+    else
+        if [[ -f "${constraints}" ]] && grep -qE '^[[:space:]]*argon2-cffi-bindings==' "${constraints}"; then
+            local tmp
+            tmp="$(mktemp "${pipdir}/constraints.XXXXXX")" || return 1
+            grep -vE '^[[:space:]]*argon2-cffi-bindings==' "${constraints}" > "${tmp}" || true
+            printf 'argon2-cffi-bindings==21.2.0\n' >> "${tmp}"
+            mv "${tmp}" "${constraints}"
+        else
+            printf 'argon2-cffi-bindings==21.2.0\n' >> "${constraints}"
+        fi
+        echo "wrote argon2-cffi-bindings==21.2.0 to \$HOME/.pip/constraints.txt" >&2
+    fi
     if [[ -f "${conf}" ]] && grep -qE '^[[:space:]]*constraint[[:space:]]*=' "${conf}"; then
         echo "\$HOME/.pip/pip.conf already has constraint=" >&2
     else
@@ -166,6 +183,12 @@ function Pin-Termux-Pip-Cryptography() {
             printf 'constraint = %s\n' "${constraints}" >> "${conf}"
         fi
         echo "wrote constraint= to \$HOME/.pip/pip.conf (blocks cryptography 50.x)" >&2
+    fi
+    if [[ -f "${conf}" ]] && grep -qE '^[[:space:]]*no-binary[[:space:]]*=' "${conf}"; then
+        echo "\$HOME/.pip/pip.conf already has no-binary=" >&2
+    else
+        printf 'no-binary = argon2-cffi-bindings\n' >> "${conf}"
+        echo "wrote no-binary=argon2-cffi-bindings to \$HOME/.pip/pip.conf" >&2
     fi
 }
 
