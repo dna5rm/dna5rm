@@ -65,6 +65,29 @@ function Ensure-Termux-Gate-Tools() {
     hash -r 2>/dev/null || true
 }
 
+# Termux apt python-cryptography is built for stock CPython 3.13.
+# Vault/ansible live in the 3.11 venv (pip cryptography==46.0.7).
+# Pin-Priority -1 + hold so pkg/apt cannot install or upgrade the distro module.
+function Block-Termux-Pkg-Python-Cryptography() {
+    is_termux || return 0
+    PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
+    local prefdir="${PREFIX}/etc/apt/preferences.d"
+    local pref="${prefdir}/no-python-cryptography"
+    mkdir -p "${prefdir}"
+    cat > "${pref}" <<'EOF'
+Explanation: distro python-cryptography is CPython 3.13; dna5rm vault uses 3.11 venv
+Package: python-cryptography
+Pin: version *
+Pin-Priority: -1
+EOF
+    echo "wrote apt pin -1 for python-cryptography (${pref})" >&2
+    if dpkg -s python-cryptography >/dev/null 2>&1; then
+        echo "Termux: removing installed python-cryptography (wrong interpreter)" >&2
+        run_command "pkg uninstall -y python-cryptography" || true
+    fi
+    apt-mark hold python-cryptography >/dev/null 2>&1 || true
+}
+
 # Termux: tur-repo first, refresh index, then bulk pkgs, then python3.11.
 # python3.11 is TUR-only. Installing it in the same apt transaction as tur-repo
 # (or before pkg update) uses a stale Packages file and 404s 3.11.16.
@@ -89,9 +112,11 @@ function Install-Termux-Pkgs() {
     echo "Termux: installing packages..." >&2
     run_command "pkg install -y tur-repo"
     run_command "pkg update -y"
+    Block-Termux-Pkg-Python-Cryptography
     run_command "pkg install -y ${pkgs[*]}"
     echo "Termux: python3.11 from TUR" >&2
     run_command "pkg install -y python3.11"
+    Block-Termux-Pkg-Python-Cryptography
 }
 
 function Pin-Termux-Python() {
@@ -105,6 +130,42 @@ function Pin-Termux-Python() {
     else
         printf '\nexport PYTHON=python3.11\n' >> "${HOME}/.env"
         echo "wrote export PYTHON=python3.11 to \$HOME/.env (host overlay, not the repo)" >&2
+    fi
+}
+
+# Host overlay, not the repo. ansible-core pulls cryptography; pip 50.x
+# ships an abi3 wheel that dlopens on Termux 3.11 then fails
+# (PyExc_Warning). 46.0.7 builds a real android_30 arm64 wheel.
+function Pin-Termux-Pip-Cryptography() {
+    is_termux || return 0
+    local pipdir="${HOME}/.pip"
+    local constraints="${pipdir}/constraints.txt"
+    local conf="${pipdir}/pip.conf"
+    mkdir -p "${pipdir}"
+    if [[ -f "${constraints}" ]] && grep -qE '^[[:space:]]*cryptography==46\.0\.7[[:space:]]*$' "${constraints}"; then
+        echo "\$HOME/.pip already pins cryptography==46.0.7" >&2
+    else
+        if [[ -f "${constraints}" ]] && grep -qE '^[[:space:]]*cryptography==' "${constraints}"; then
+            # replace any other cryptography pin; keep other lines
+            local tmp
+            tmp="$(mktemp "${pipdir}/constraints.XXXXXX")" || return 1
+            grep -vE '^[[:space:]]*cryptography==' "${constraints}" > "${tmp}" || true
+            printf 'cryptography==46.0.7\n' >> "${tmp}"
+            mv "${tmp}" "${constraints}"
+        else
+            printf 'cryptography==46.0.7\n' >> "${constraints}"
+        fi
+        echo "wrote cryptography==46.0.7 to \$HOME/.pip/constraints.txt" >&2
+    fi
+    if [[ -f "${conf}" ]] && grep -qE '^[[:space:]]*constraint[[:space:]]*=' "${conf}"; then
+        echo "\$HOME/.pip/pip.conf already has constraint=" >&2
+    else
+        if [[ ! -f "${conf}" ]] || ! grep -qE '^[[:space:]]*\[global\]' "${conf}"; then
+            printf '[global]\nconstraint = %s\n' "${constraints}" >> "${conf}"
+        else
+            printf 'constraint = %s\n' "${constraints}" >> "${conf}"
+        fi
+        echo "wrote constraint= to \$HOME/.pip/pip.conf (blocks cryptography 50.x)" >&2
     fi
 }
 
@@ -153,6 +214,7 @@ if is_termux; then
     Install-Termux-Pkgs
     hash -r 2>/dev/null || true
     Pin-Termux-Python
+    Pin-Termux-Pip-Cryptography
 fi
 
 run_command "mkdir -p \"${HOME}/Projects\""
