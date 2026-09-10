@@ -264,6 +264,8 @@ Link-If "${repo}/.screenrc" "${HOME}/.screenrc" || true
 Link-If "${repo}/.sqliterc" "${HOME}/.sqliterc" || true
 Link-If "${repo}/.tmux.conf" "${HOME}/.tmux.conf" || true
 Link-If "${repo}/.vimrc" "${HOME}/.vimrc" || exit 1
+mkdir -p "${HOME}/.config/nvim" 2>/dev/null || true
+Link-If "${repo}/.config/nvim/init.vim" "${HOME}/.config/nvim/init.vim" || true
 [[ -d "${scripts}" ]] && { Link-If "${scripts}" "${HOME}/bin" || exit 1; }
 
 run_command "mkdir -p \"${HOME}/.ssh\" \"${HOME}/.gnupg\" \"${HOME}/.local/bin\" \"${HOME}/.local/lib\" \"${HOME}/.local/share\" \"${HOME}/.local/src\" \"${HOME}/.bash_completion.d\""
