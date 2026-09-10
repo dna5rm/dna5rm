@@ -68,10 +68,12 @@ endif
 " Mouse: GNU screen/tmux need xterm2; SGR there eats clicks.
 if has('mouse')
     set mouse=a
-    if &term =~# 'screen' || &term =~# 'tmux'
-        set ttymouse=xterm2
-    elseif has('mouse_sgr')
-        set ttymouse=sgr
+    if exists('+ttymouse')
+        if &term =~# 'screen' || &term =~# 'tmux'
+            set ttymouse=xterm2
+        elseif has('mouse_sgr')
+            set ttymouse=sgr
+        endif
     endif
 endif
 set ttimeout
