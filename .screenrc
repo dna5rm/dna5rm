@@ -1,49 +1,36 @@
-### Tab bar ###
-hardstatus off
-hardstatus alwayslastline
-hardstatus string "%{kw} ${USER}@%H [ %{rw}%-w%{.rw}%n*%t%{-}%+w%{kw} ] %= %{W}(%l)%{-} %D,%c "
+# GNU Screen 4.09 — portable dna5rm rc
+# Serial consoles: open on demand (auto-spawn hangs if the tty is missing).
 
-### Misc Options ###
-activity 'Activity on screen %n ^G'
+### Options ###
 altscreen on
 autodetach on
 defutf8 on
 defencoding utf8
-defscrollback 8000
+defscrollback 16384
 shelltitle ''
 startup_message off
 vbell off
 shell -$SHELL
-defutf8 on
+activity 'Activity on screen %n ^G'
 
-### Programs opening by default ###
-screen -t '' 0
-#screen -t '' 1
-#screen -t '' 2
-#screen -t '' 3
-#screen -t '' 4
-#screen -t '' 5
-#screen -t '' 6
-#screen -t '' 7
-#screen -t '' 8
-#screen -t '' 9
-screen -t usb0  10 /dev/ttyUSB0
-screen -t pa440 11 /dev/ttyUSB1
-screen -t c3560 12 /dev/ttyUSB2
-screen -t c9115 13 /dev/ttyUSB3
+### Status ###
+hardstatus alwayslastline
+hardstatus string '%{= kK} %{= KC}%u@%H %{= kK}|%-w%{= kC} %n %t %{= kK}%+w %= %{= KG}%l %{= kK} %{= KW}%M-%d %0c %{= kK} '
+
+### Windows ###
+# Window 0 is the login shell; C-a c takes the next free number.
+screen -t shell 0
+
+# C-a :  screen -t usb0  10 /dev/ttyUSB0
+# C-a :  screen -t pa440 11 /dev/ttyUSB1
+# C-a :  screen -t c3560 12 /dev/ttyUSB2
+# C-a :  screen -t c9115 13 /dev/ttyUSB3
+# Default serial is 9600 8N1; append a baud after the device if needed.
 
 ### Keys ###
-bind	c	screen 1	# Window numbering starts at 1, not 0.
+bindkey "^[[1;5C" next
+bindkey "^[[1;5D" prev
 
-bindkey "[C"	next            # CTRL+Right
-bindkey "[D"	prev            # CTRL+Left
-#bindkey -k k8	log             # F8	
-#bindkey -k k9	screen          # F9
-#bindkey -k k;	kill            # F10
-#bindkey -k F1	windowlist -b   # F11
-#bindkey -k F2	title           # F12
-
-### COLORS! and some useful terminfo ###
+### Terminal ###
 term screen-256color
 terminfo rxvt-unicode 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
-termcapinfo xterm ti@:te@
