@@ -18,7 +18,7 @@ Files (topic names, not load-order prefixes):
   crypt.sh          crypt (openssl AES-CBC)
   gpg.sh            gpg_init backup restore ls import export encrypt decrypt sign verify expire rotate revoke
   git.sh            git_pull git_push git_diff proj_pull proj_status
-  keepass.sh        kp_user kp_pass kp_url kp_otp kp_show kp_find (KP_PASS from vault)
+  keepass.sh        kp_user kp_pass kp_url kp_otp kp_note kp_show kp_find kp_mv kp_tag kp_field kp_add kp_rm (KP_PASS from vault)
   keepass-completion.sh  _kp_completer: TAB completion for kp_* (static flags only, no kdbx access)
   password.sh       new_password
   prompt.sh         set_prompt
