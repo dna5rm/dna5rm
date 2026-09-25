@@ -20,6 +20,8 @@ function _kp_usage() {
 	kp_show <entry>           JSON (Path Title UserName URL Notes). No Password/OTP
 	                          unless KP_SHOW_SECRETS=1. Exact title or Path/Title.
 	kp_find <query>           Path+Title only (min 3 chars; skips Recycle Bin)
+	kp_ls   [-a] [group]     one Path per entry (group/title). Skips Recycle Bin
+	                          unless -a. Optional group is a name or path prefix.
 	kp_mv   <entry> <dest>    rename and/or move. dest is NewTitle, Group/,
 	                          or Group/NewTitle (groups created as needed).
 	kp_tag  <entry> [ops…]    list tags, or +tag / -tag (bare name adds).
@@ -95,6 +97,8 @@ cmd = sys.argv[1]
 # rm accepts -f/--force anywhere after the command; keep only the query.
 if cmd == "rm":
     query = next((a for a in sys.argv[2:] if a not in ("-f", "--force")), "")
+elif cmd == "ls":
+    query = ""
 else:
     query = sys.argv[2]
 kdbx = os.environ["KP_KDBX"]
@@ -226,6 +230,59 @@ def otpauth_from(secret, title):
     label = quote(title or "entry", safe="")
     return f"otpauth://totp/{label}?secret={s}&period=30&digits=6"
 
+if cmd == "ls":
+    include_trash = any(a in ("-a", "--all") for a in sys.argv[2:])
+    prefix = next((a for a in sys.argv[2:] if a not in ("-a", "--all")), "")
+    prefix = prefix.strip().strip("/")
+    lines = []
+
+    def group_only_path(g):
+        names = []
+        while g is not None:
+            name = getattr(g, "name", None) or ""
+            if name and name != "Root":
+                names.append(name)
+            g = getattr(g, "parentgroup", None) or getattr(g, "parent", None)
+        names.reverse()
+        return "/".join(names)
+
+    def group_is_trash(g):
+        while g is not None:
+            if (getattr(g, "name", None) or "") == "Recycle Bin":
+                return True
+            g = getattr(g, "parentgroup", None) or getattr(g, "parent", None)
+        return False
+
+    def under_prefix(ln, pref):
+        low = ln.lower().rstrip("/")
+        p = pref.lower()
+        parts = low.split("/")
+        for i in range(len(parts)):
+            tail = "/".join(parts[i:])
+            if tail == p or tail.startswith(p + "/"):
+                return True
+        return False
+
+    def walk(g):
+        if g is None or (group_is_trash(g) and not include_trash):
+            return
+        path = group_only_path(g)
+        kids = list(getattr(g, "entries", None) or [])
+        if not kids and path:
+            lines.append(path + "/")
+        for e in kids:
+            if is_trash(e) and not include_trash:
+                continue
+            lines.append(group_path(e) or (e.title or ""))
+        for sg in getattr(g, "subgroups", None) or []:
+            walk(sg)
+
+    walk(kp.root_group)
+    if prefix:
+        lines = [ln for ln in lines if under_prefix(ln, prefix)]
+    for ln in sorted(lines, key=str.lower):
+        sys.stdout.write(ln + "\n")
+    sys.exit(0 if lines else 1)
 hits = entries(query, exact=(cmd != "find"))
 if cmd == "find":
     if len(query) < 3:
@@ -499,6 +556,15 @@ function kp_find() {
     [[ "${#1}" -ge 3 ]] || { echo "kp_find: query must be at least 3 characters" >&2; return 2; }
     _kp_ready "${1}" || { [[ $? -eq 2 ]] && return 0; return 1; }
     _kp_py find "${1}"
+}
+
+function kp_ls() {
+    local arg
+    for arg in "$@"; do
+        [[ "${arg}" == -h || "${arg}" == --help ]] && { _kp_usage; return 0; }
+    done
+    _kp_ready || return 1
+    _kp_py ls "$@"
 }
 
 function kp_mv() {

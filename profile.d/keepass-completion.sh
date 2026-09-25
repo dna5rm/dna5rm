@@ -54,6 +54,12 @@ function _kp_completer() {
                 COMPREPLY=($(compgen -W '-' -- "${cur}"))
             fi
             ;;
+        kp_ls)
+            # kp_ls [-a] [group]. Group is free-form; offer only the flag.
+            if [[ "${cur}" == -* || -z "${cur}" ]]; then
+                COMPREPLY=($(compgen -W '-a --all -h --help' -- "${cur}"))
+            fi
+            ;;
         kp_find | kp_mv)
             # Free-form query/dest; keepass.sh does not honour -h here.
             ;;
@@ -73,4 +79,4 @@ function _kp_completer() {
 # would otherwise add a literal "+" tag).
 complete -F _kp_completer -o nospace kp_tag kp_field kp_pass
 complete -F _kp_completer \
-    kp_user kp_url kp_otp kp_show kp_find kp_mv kp_add kp_rm kp_note
+    kp_user kp_url kp_otp kp_show kp_find kp_ls kp_mv kp_add kp_rm kp_note
